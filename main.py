@@ -64,11 +64,11 @@ def get_args():
     parser.add_argument('--n_test_exs', default=400, type=int)
 
     parser.add_argument('--minibatch_size', default=64, type=int)
-    parser.add_argument('--n_gradients', default=4, type=int)
+    parser.add_argument('--n_gradients', default=1, type=int)
     parser.add_argument('--errors_per_gradient', default=4, type=int)
     parser.add_argument('--gradients_per_error', default=1, type=int)
     parser.add_argument('--steps_per_gradient', default=1, type=int)
-    parser.add_argument('--mc_samples_per_step', default=2, type=int)
+    parser.add_argument('--mc_samples_per_step', default=0, type=int)
     parser.add_argument('--max_expansion_factor', default=8, type=int)
 
     parser.add_argument('--engine', default="chatgpt", type=str)
@@ -102,10 +102,10 @@ if __name__ == '__main__':
     bf_eval = get_evaluator('bf')(config)
     gpt4 = predictors.BinaryPredictor(config)
 
-    optimizer = optimizers.ProTeGi(
+    optimizer = optimizers.OnlineProTeGi(
         config, evaluator, scorer, args.max_threads, bf_eval)
 
-    train_exs = task.get_train_examples()
+    full_train_exs = task.get_train_examples()
     test_exs = task.get_test_examples()
 
     if os.path.exists(args.out):
@@ -124,27 +124,28 @@ if __name__ == '__main__':
 
         # expand candidates
         if round > 0:
-            candidates = optimizer.expand_candidates(candidates, task, gpt4, train_exs)
+            train_exs = full_train_exs[round]
+            candidates = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
 
         # score candidates
-        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
-        [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
+        # scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
+        # [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
-        # select candidates
-        candidates = candidates[:config['beam_size']]
-        scores = scores[:config['beam_size']]
+        # # select candidates
+        # candidates = candidates[:config['beam_size']]
+        # scores = scores[:config['beam_size']]
 
         # record candidates, estimated scores, and true scores
         with open(args.out, 'a') as outf:
             outf.write(f"======== ROUND {round}\n")
             outf.write(f'{time.time() - start}\n')
             outf.write(f'{candidates}\n')
-            outf.write(f'{scores}\n')
-        metrics = []
-        for candidate, score in zip(candidates, scores):
-            f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-            metrics.append(f1)
-        with open(args.out, 'a') as outf:  
-            outf.write(f'{metrics}\n')
+            # outf.write(f'{scores}\n')
+        # metrics = []
+        # for candidate, score in zip(candidates, scores):
+        #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
+        #     metrics.append(f1)
+        # with open(args.out, 'a') as outf:  
+        #     outf.write(f'{metrics}\n')
 
     print("DONE!")
