@@ -56,7 +56,7 @@ def get_args():
     parser.add_argument('--gradient_model', default='gpt-4o-mini')
     parser.add_argument('--edit_model', default='gpt-4o-mini')
     # parser.add_argument('--config', default='default.json')
-    parser.add_argument('--out', default='test_out.txt')
+    parser.add_argument('--out', default='expts/liar_test0.txt')
     parser.add_argument('--max_threads', default=32, type=int)
     parser.add_argument('--temperature', default=0.0, type=float)
 
