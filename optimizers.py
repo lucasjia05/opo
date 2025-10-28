@@ -11,6 +11,7 @@ class PromptOptimizer(ABC):
         self.scorer = scorer
         self.max_threads = max_threads
         self.bf_eval = bf_eval
+        self.metrics = {"acc" : []}
 
     @abstractmethod
     def expand_candidates(self, prompts, task, gpt4, train_exs):
@@ -211,10 +212,14 @@ class OnlineProTeGi(PromptOptimizer):
             if l != p:
                 error_idxs.append(i)
 
+        acc =  1 - len(error_idxs) / len(labels)
+        self.metrics["acc"].append(acc)
 
-        # acc =  1 - len(error_idxs) / float(len(labels))
-        # print(acc)
-        # save later
+        with open(self.opt['out'], 'a') as outf:
+            outf.write(f"acc: {acc}\n")
+        avg_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
+        with open(self.opt['out'], 'a') as outf:
+            outf.write(f"overal acc: {avg_acc}\n")
 
         
         sample_idxs = random.sample(error_idxs, min(len(error_idxs), n))
@@ -249,7 +254,7 @@ class OnlineProTeGi(PromptOptimizer):
     def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1):
         """ Get "gradients" for a prompt based on the error string."""
         gradient_prompt = f"""
-        I'm trying to write a zero-shot classifier prompt.
+        I'm trying to write a zero-shot binary classifier prompt.
     
         My current prompt is:
         "{prompt}"
@@ -257,13 +262,16 @@ class OnlineProTeGi(PromptOptimizer):
         But this prompt gets the following examples wrong:
         {error_string}
 
-        give {num_feedbacks} reasons why the prompt could have gotten these examples wrong.
-        Wrap each reason with <START> and <END>
+        Give a reason why the prompt could have gotten these examples wrong.
+        Wrap the reason with <START> and <END>. Do not include <START> and <END> anywhere else in your response, except to mark the start and end of the reason.
+
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
         res = utils.chatgpt(gradient_prompt, n=n)
         feedbacks = []
         new_prompts = []
+        # with open(self.opt['out'], 'a') as outf:
+        #     outf.write(f"gradients: {res}\n")
         for r in res:    
             feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
         return feedbacks
@@ -271,7 +279,7 @@ class OnlineProTeGi(PromptOptimizer):
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a zero-shot classifier.
+        I'm trying to write a zero-shot binary classifier prompt.
         
         My current prompt is:
         "{prompt}"
@@ -281,13 +289,15 @@ class OnlineProTeGi(PromptOptimizer):
 
         Based on these examples the problem with this prompt is that {feedback_str}
 
-        Based on the above information, I wrote {steps_per_gradient} different improved prompts.
-        Each prompt is wrapped with <START> and <END>.
+        Based on the above information, write a different prompt improving upon the previous prompt. Do not output the same prompt.
+        Wrap the prompt with <START> and <END>. Do not include <START> and <END> anywhere else in your response, except to mark the start and end of the new prompt.
 
-        The {steps_per_gradient} new prompts are:
+        The new prompt is:
         """
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
         res = utils.chatgpt(transformation_prompt, n=n)
+        # with open(self.opt['out'], 'a') as outf:
+        #     outf.write(f"new edited prompt: {res}\n")
         new_prompts = []
         for r in res:   
             new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
@@ -396,31 +406,45 @@ class OnlineProTeGi(PromptOptimizer):
         """ Expand a list of prompts by generating gradient-based successors and 
             synonyms for each section.
         """
-        minibatch = random.sample(train_exs, k=self.opt['minibatch_size'])
+        # minibatch = random.sample(train_exs, k=self.opt['minibatch_size'])
+        minibatch = train_exs
 
         new_prompts = []
         for prompt in tqdm(prompts, desc=f'expanding {len(prompts)} prompts'):
             sections = utils.parse_sectioned_prompt(prompt)
             task_section = sections['task'].strip()
+            # with open(self.opt['out'], 'a') as outf:
+            #     outf.write(f"original task section stripped: {task_section}\n")
+            # task_section = sections['task']
+            # with open(self.opt['out'], 'a') as outf:
+            #     outf.write(f"original task section unstripped: {task_section}\n")
 
-            # evaluate prompt on minibatch
+            # evaluate prompt on new minibatch
             f1, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch)
-            print(f1)
+            # with open(self.opt['out'], 'a') as outf:
+            #     outf.write(f"f1: {f1}\n")
 
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
                 gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds)
                 new_task_sections = []
+                with open(self.opt['out'], 'a') as outf:
+                    outf.write(f"gradients: {gradients}\n")
                 for feedback, error_string in tqdm(gradients, desc='applying gradients'):
                     tmp = self.apply_gradient(
                         task_section, error_string, feedback, self.opt['steps_per_gradient'])
+                    # tmp[0] += "\n"
                     new_task_sections += tmp
-
+                    # with open(self.opt['out'], 'a') as outf:
+                    #     outf.write(f"new task section: {tmp}\n")
+                    
             tmp_new_prompts = [
                 prompt.replace(task_section, tmp) 
                 for tmp in new_task_sections
             ]
+            # with open(self.opt['out'], 'a') as outf:
+            #         outf.write(f"new prompts: {tmp_new_prompts}\n")
             
             new_prompts += tmp_new_prompts
         return new_prompts

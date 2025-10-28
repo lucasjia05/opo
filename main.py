@@ -49,33 +49,37 @@ def get_scorer(scorer):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', default='ethos')
-    parser.add_argument('--data_dir', default='data/ethos')
-    parser.add_argument('--prompts', default='prompts/ethos.md')
+    parser.add_argument('--task', default='liar')
+    parser.add_argument('--data_dir', default='data/liar')
+    parser.add_argument('--prompts', default='prompts/liar.md')
+    parser.add_argument('--task_model', default='gpt-4o-mini')
+    parser.add_argument('--gradient_model', default='gpt-4o-mini')
+    parser.add_argument('--edit_model', default='gpt-4o-mini')
     # parser.add_argument('--config', default='default.json')
-    parser.add_argument('--out', default='test_out.txt')
+    parser.add_argument('--out', default='expts/liar_test0.txt')
     parser.add_argument('--max_threads', default=32, type=int)
     parser.add_argument('--temperature', default=0.0, type=float)
 
     parser.add_argument('--optimizer', default='nl-gradient')
     parser.add_argument('--rounds', default=6, type=int)
-    parser.add_argument('--beam_size', default=4, type=int)
-    parser.add_argument('--n_test_exs', default=400, type=int)
 
     parser.add_argument('--minibatch_size', default=64, type=int)
     parser.add_argument('--n_gradients', default=1, type=int)
     parser.add_argument('--errors_per_gradient', default=4, type=int)
     parser.add_argument('--gradients_per_error', default=1, type=int)
+
+
     parser.add_argument('--steps_per_gradient', default=1, type=int)
     parser.add_argument('--mc_samples_per_step', default=0, type=int)
     parser.add_argument('--max_expansion_factor', default=8, type=int)
-
+    parser.add_argument('--beam_size', default=4, type=int)
+    parser.add_argument('--n_test_exs', default=400, type=int)
     parser.add_argument('--engine', default="chatgpt", type=str)
 
     parser.add_argument('--evaluator', default="bf", type=str)
     parser.add_argument('--scorer', default="01", type=str)
-    parser.add_argument('--eval_rounds', default=8, type=int)
-    parser.add_argument('--eval_prompts_per_round', default=8, type=int)
+    parser.add_argument('--eval_rounds', default=2, type=int)
+    parser.add_argument('--eval_prompts_per_round', default=2, type=int)
     # calculated by s-sr and sr
     parser.add_argument('--samples_per_eval', default=32, type=int)
     parser.add_argument('--c', default=1.0, type=float, help='exploration param for UCB. higher = more exploration')
@@ -136,11 +140,11 @@ if __name__ == '__main__':
             candidates = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
 
         # score candidates
-        # scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
-        # [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
+        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
+        [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
-        # # select candidates
-        # candidates = candidates[:config['beam_size']]
+        # select candidates
+        candidates = candidates[:config['beam_size']]
         # scores = scores[:config['beam_size']]
 
         # record candidates, estimated scores, and true scores
