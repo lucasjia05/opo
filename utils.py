@@ -28,21 +28,27 @@ def parse_sectioned_prompt(s):
     return result
 
 
-def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=1024, 
+def chatgpt(prompt, model="gpt-4o-mini", temperature=0.7, n=1, top_p=1, stop=None, max_tokens=2048, 
                   presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=10):
     messages = [{"role": "user", "content": prompt}]
-    payload = {
-        "messages": messages,
-        "model": "gpt-4o-mini",
-        "temperature": temperature,
-        "n": n,
-        "top_p": top_p,
-        "stop": stop,
-        "max_tokens": max_tokens,
-        "presence_penalty": presence_penalty,
-        "frequency_penalty": frequency_penalty,
-        "logit_bias": logit_bias
-    }
+    if "gpt-5" not in model:
+        payload = {
+            "messages": messages,
+            "model": model,
+            "temperature": temperature,
+            "n": n,
+            "top_p": top_p,
+            "stop": stop,
+            "max_tokens": max_tokens,
+            "presence_penalty": presence_penalty,
+            "frequency_penalty": frequency_penalty,
+            "logit_bias": logit_bias
+        }
+    else:
+        payload = {
+            "messages": messages,
+            "model": model
+        }
     retries = 0
     while True:
         try:
@@ -62,6 +68,8 @@ def chatgpt(prompt, temperature=0.7, n=1, top_p=1, stop=None, max_tokens=1024,
         except requests.exceptions.ReadTimeout:
             time.sleep(1)
             retries += 1
+        if retries > 5:
+            return [""]
     r = r.json()
     return [choice['message']['content'] for choice in r['choices']]
 
