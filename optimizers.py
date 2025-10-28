@@ -417,7 +417,6 @@ class OnlineProTeGi(PromptOptimizer):
                         task_section, error_string, feedback, self.opt['steps_per_gradient'])
                     new_task_sections += tmp
 
-
             tmp_new_prompts = [
                 prompt.replace(task_section, tmp) 
                 for tmp in new_task_sections

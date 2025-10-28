@@ -10,7 +10,7 @@ import scorers
 import tasks
 import predictors
 import optimizers
-
+import math
 
 def get_task_class(task_name):
     if task_name == 'ethos':
@@ -46,7 +46,6 @@ def get_scorer(scorer):
         return scorers.CachedLogLikelihoodScorer
     else:
         raise Exception(f'Unsupported scorer: {scorer}')
-
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -105,7 +104,14 @@ if __name__ == '__main__':
     optimizer = optimizers.OnlineProTeGi(
         config, evaluator, scorer, args.max_threads, bf_eval)
 
-    full_train_exs = task.get_train_examples()
+    train_exs = task.get_train_examples()
+    # convert to n groups
+    if math.floor(len(train_exs) / config['rounds']) < config['minibatch_size']:
+        config['rounds'] = math.floor(len(train_exs) / config['minibatch_size'])
+        print("Warning: minibatch size too large, reducing number of rounds to {} to fit data size.".format(config['rounds']))
+    chunk_size = math.ceil(len(train_exs) / config['rounds'])
+    grouped_train_exs = [train_exs[i:i + chunk_size] for i in range(0, len(train_exs), chunk_size)]
+
     test_exs = task.get_test_examples()
 
     if os.path.exists(args.out):
@@ -124,7 +130,9 @@ if __name__ == '__main__':
 
         # expand candidates
         if round > 0:
-            train_exs = full_train_exs[round]
+            #print(round)
+            train_exs = grouped_train_exs[round - 1]
+            # TO DO: the prompts aren't changing each round idk why
             candidates = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
 
         # score candidates
