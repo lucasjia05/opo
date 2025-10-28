@@ -11,6 +11,7 @@ class PromptOptimizer(ABC):
         self.scorer = scorer
         self.max_threads = max_threads
         self.bf_eval = bf_eval
+        self.metrics = {"acc" : []}
 
     @abstractmethod
     def expand_candidates(self, prompts, task, gpt4, train_exs):
@@ -211,9 +212,14 @@ class OnlineProTeGi(PromptOptimizer):
             if l != p:
                 error_idxs.append(i)
 
-        acc =  1 - len(error_idxs) / float(len(labels))
+        acc =  1 - len(error_idxs) / len(labels)
+        self.metrics["acc"].append(acc)
+
         with open(self.opt['out'], 'a') as outf:
             outf.write(f"acc: {acc}\n")
+        avg_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
+        with open(self.opt['out'], 'a') as outf:
+            outf.write(f"overal acc: {avg_acc}\n")
 
         
         sample_idxs = random.sample(error_idxs, min(len(error_idxs), n))
@@ -248,7 +254,7 @@ class OnlineProTeGi(PromptOptimizer):
     def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1):
         """ Get "gradients" for a prompt based on the error string."""
         gradient_prompt = f"""
-        I'm trying to write a zero-shot classifier prompt.
+        I'm trying to write a zero-shot binary classifier prompt.
     
         My current prompt is:
         "{prompt}"
@@ -273,7 +279,7 @@ class OnlineProTeGi(PromptOptimizer):
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a zero-shot classifier.
+        I'm trying to write a zero-shot binary classifier prompt.
         
         My current prompt is:
         "{prompt}"
@@ -415,8 +421,8 @@ class OnlineProTeGi(PromptOptimizer):
 
             # evaluate prompt on new minibatch
             f1, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch)
-            with open(self.opt['out'], 'a') as outf:
-                outf.write(f"f1: {f1}\n")
+            # with open(self.opt['out'], 'a') as outf:
+            #     outf.write(f"f1: {f1}\n")
 
             # get gradients
             new_task_sections = []
@@ -428,7 +434,7 @@ class OnlineProTeGi(PromptOptimizer):
                 for feedback, error_string in tqdm(gradients, desc='applying gradients'):
                     tmp = self.apply_gradient(
                         task_section, error_string, feedback, self.opt['steps_per_gradient'])
-                    tmp[0] += "\n"
+                    # tmp[0] += "\n"
                     new_task_sections += tmp
                     # with open(self.opt['out'], 'a') as outf:
                     #     outf.write(f"new task section: {tmp}\n")
@@ -437,8 +443,8 @@ class OnlineProTeGi(PromptOptimizer):
                 prompt.replace(task_section, tmp) 
                 for tmp in new_task_sections
             ]
-            with open(self.opt['out'], 'a') as outf:
-                    outf.write(f"new prompts: {tmp_new_prompts}\n")
+            # with open(self.opt['out'], 'a') as outf:
+            #         outf.write(f"new prompts: {tmp_new_prompts}\n")
             
             new_prompts += tmp_new_prompts
         return new_prompts

@@ -145,19 +145,19 @@ if __name__ == '__main__':
 
         # select candidates
         candidates = candidates[:config['beam_size']]
-        scores = scores[:config['beam_size']]
+        # scores = scores[:config['beam_size']]
 
         # record candidates, estimated scores, and true scores
         with open(args.out, 'a') as outf:
             outf.write(f"======== ROUND {round}\n")
             outf.write(f'{time.time() - start}\n')
             outf.write(f'{candidates}\n')
-            outf.write(f'{scores}\n')
-        metrics = []
-        for candidate, score in zip(candidates, scores):
-            f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-            metrics.append(f1)
-        with open(args.out, 'a') as outf:  
-            outf.write(f'{metrics}\n')
+            # outf.write(f'{scores}\n')
+        # metrics = []
+        # for candidate, score in zip(candidates, scores):
+        #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
+        #     metrics.append(f1)
+        # with open(args.out, 'a') as outf:  
+        #     outf.write(f'{metrics}\n')
 
     print("DONE!")
