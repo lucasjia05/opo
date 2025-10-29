@@ -53,6 +53,7 @@ class ClassificationTask(DataProcessor):
                 preds.append(1 if pred.strip().upper().endswith("{LABEL : YES}") else 0)
 
         accuracy = accuracy_score(labels, preds)
+        print("accuracy:", accuracy)
         f1 = f1_score(labels, preds, average='micro')
         return f1, texts, labels, preds, responses
 

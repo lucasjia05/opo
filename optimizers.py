@@ -11,7 +11,7 @@ class PromptOptimizer(ABC):
         self.scorer = scorer
         self.max_threads = max_threads
         self.bf_eval = bf_eval
-        self.metrics = {"acc" : []}
+        self.metrics = {"acc" : [], "f1": []}
 
     @abstractmethod
     def expand_candidates(self, prompts, task, gpt4, train_exs):
@@ -214,13 +214,7 @@ class OnlineProTeGi(PromptOptimizer):
 
         acc =  1 - len(error_idxs) / len(labels)
         self.metrics["acc"].append(acc)
-
-        with open(self.opt['out'], 'a') as outf:
-            outf.write(f"acc: {acc}\n")
-        avg_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
-        with open(self.opt['out'], 'a') as outf:
-            outf.write(f"overal acc: {avg_acc}\n")
-
+        self.metrics['avg_acc'] = sum(self.metrics["acc"]) / len(self.metrics["acc"])
         
         sample_idxs = random.sample(error_idxs, min(len(error_idxs), n))
 
@@ -282,7 +276,7 @@ class OnlineProTeGi(PromptOptimizer):
         # with open(self.opt['out'], 'a') as outf:
         #     outf.write(f"errors: {error_string}\n")
         with open(self.opt['out'], 'a') as outf:
-            # outf.write(f"error string: {error_string}\n")
+            #outf.write(f"error string: {error_string}\n")
             outf.write(f"gradients: {res}\n")
         for r in res:    
             feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
@@ -354,7 +348,6 @@ class OnlineProTeGi(PromptOptimizer):
                     tmp = self.apply_gradient(
                         task_section, error_string, feedback, self.opt['steps_per_gradient'], model=self.opt['editing_model'])
                     new_task_sections += tmp
-
             # generate synonyms
             mc_sampled_task_sections = []
             if self.opt['mc_samples_per_step'] > 0:
@@ -426,8 +419,8 @@ class OnlineProTeGi(PromptOptimizer):
 
             # evaluate prompt on new minibatch
             f1, texts, labels, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
-            # with open(self.opt['out'], 'a') as outf:
-            #     outf.write(f"f1: {f1}\n")
+            self.metrics["f1"].append(f1)
+            self.metrics['avg_f1'] = sum(self.metrics["f1"]) / len(self.metrics["f1"])
 
             # get gradients
             new_task_sections = []
@@ -445,8 +438,11 @@ class OnlineProTeGi(PromptOptimizer):
                 prompt.replace(task_section, tmp) 
                 for tmp in new_task_sections
             ]
-            # with open(self.opt['out'], 'a') as outf:
-            #         outf.write(f"new prompts: {tmp_new_prompts}\n")
-            
+            with open(self.opt['out'], 'a') as outf:
+                #outf.write(f"f1: {self.metrics['f1'][-1]}\n")
+                #outf.write(f"overall f1: {self.metrics['avg_f1']}\n")
+                outf.write(f"acc: {self.metrics['acc'][-1]}\n")
+                outf.write(f"overall acc: {self.metrics['avg_acc']}\n")
+
             new_prompts += tmp_new_prompts
         return new_prompts
