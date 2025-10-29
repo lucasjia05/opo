@@ -53,8 +53,8 @@ def get_args():
     parser.add_argument('--data_dir', default='data/liar')
     parser.add_argument('--prompts', default='prompts/liar.md')
     parser.add_argument('--task_model', default='gpt-4o-mini')
-    parser.add_argument('--gradient_model', default='gpt-4o-mini')
-    parser.add_argument('--edit_model', default='gpt-4o-mini')
+    parser.add_argument('--gradient_model', default='gpt-4o')
+    parser.add_argument('--editing_model', default='gpt-4o')
     # parser.add_argument('--config', default='default.json')
     parser.add_argument('--out', default='expts/liar_test0.txt')
     parser.add_argument('--max_threads', default=32, type=int)
@@ -73,7 +73,7 @@ def get_args():
     parser.add_argument('--mc_samples_per_step', default=0, type=int)
     parser.add_argument('--max_expansion_factor', default=8, type=int)
     parser.add_argument('--beam_size', default=4, type=int)
-    parser.add_argument('--n_test_exs', default=400, type=int)
+    parser.add_argument('--n_test_exs', default=100, type=int)
     parser.add_argument('--engine', default="chatgpt", type=str)
 
     parser.add_argument('--evaluator', default="bf", type=str)
@@ -128,16 +128,22 @@ if __name__ == '__main__':
 
     candidates = [open(fp.strip()).read() for fp in args.prompts.split(',')]
 
-    for round in tqdm(range(config['rounds'] + 1)):
+    for round in tqdm(range(1, config['rounds'] + 1)):
         print("STARTING ROUND ", round)
         start = time.time()
 
         # expand candidates
         if round > 0:
-            #print(round)
+            with open(args.out, 'a') as outf:
+                outf.write(f"======== ROUND {round}\n")
+                outf.write(f'current prompt: {candidates}\n')
             train_exs = grouped_train_exs[round - 1]
-            # TO DO: the prompts aren't changing each round idk why
-            candidates = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
+            new_prompts = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
+            if new_prompts:
+                candidates = new_prompts
+            else:
+                with open(args.out, 'a') as outf:
+                    outf.write(f"iterate failed, continuing with current prompt\n")
 
         # score candidates
         scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
@@ -149,15 +155,14 @@ if __name__ == '__main__':
 
         # record candidates, estimated scores, and true scores
         with open(args.out, 'a') as outf:
-            outf.write(f"======== ROUND {round}\n")
             outf.write(f'{time.time() - start}\n')
-            outf.write(f'{candidates}\n')
             # outf.write(f'{scores}\n')
+        
         # metrics = []
         # for candidate, score in zip(candidates, scores):
         #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
         #     metrics.append(f1)
         # with open(args.out, 'a') as outf:  
-        #     outf.write(f'{metrics}\n')
+        #     outf.write(f'test set accuracy: {metrics}\n')
 
     print("DONE!")

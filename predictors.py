@@ -16,10 +16,19 @@ class GPT4Predictor(ABC):
 class BinaryPredictor(GPT4Predictor):
     categories = ['No', 'Yes']
 
+    # def inference(self, ex, prompt):
+    #     prompt = Template(prompt).render(text=ex['text'])
+    #     response = utils.chatgpt(
+    #         prompt, max_tokens=4, n=1, timeout=30, 
+    #         temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
+    #     pred = 1 if response.strip().upper().startswith('YES') else 0
+    #     return pred
+
     def inference(self, ex, prompt):
         prompt = Template(prompt).render(text=ex['text'])
         response = utils.chatgpt(
-            prompt, max_tokens=4, n=1, timeout=30, 
-            temperature=self.opt['temperature'])[0]
-        pred = 1 if response.strip().upper().startswith('YES') else 0
+            prompt, max_tokens=2048, n=1, timeout=30, 
+            temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
+        # pred = 1 if "{LABEL : YES}" in response.strip().upper() else 0
+        pred = 1 if response.strip().upper().endswith("{LABEL : YES}") else 0
         return pred

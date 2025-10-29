@@ -251,7 +251,7 @@ class OnlineProTeGi(PromptOptimizer):
             text = text[end_index+len(end_tag):]
         return texts
 
-    def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1):
+    def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1, model="gpt-4o"):
         """ Get "gradients" for a prompt based on the error string."""
         gradient_prompt = f"""
         I'm trying to write a zero-shot binary classifier prompt.
@@ -267,16 +267,18 @@ class OnlineProTeGi(PromptOptimizer):
 
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
-        res = utils.chatgpt(gradient_prompt, n=n)
+        res = utils.chatgpt(gradient_prompt, n=n, model=model)
         feedbacks = []
         new_prompts = []
         # with open(self.opt['out'], 'a') as outf:
-        #     outf.write(f"gradients: {res}\n")
+        #     outf.write(f"errors: {error_string}\n")
         for r in res:    
             feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
+        with open(self.opt['out'], 'a') as outf:
+            outf.write(f"gradients: {feedbacks}\n")
         return feedbacks
 
-    def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1):
+    def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1, model="gpt-4o"):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
         I'm trying to write a zero-shot binary classifier prompt.
@@ -295,9 +297,7 @@ class OnlineProTeGi(PromptOptimizer):
         The new prompt is:
         """
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
-        res = utils.chatgpt(transformation_prompt, n=n)
-        # with open(self.opt['out'], 'a') as outf:
-        #     outf.write(f"new edited prompt: {res}\n")
+        res = utils.chatgpt(transformation_prompt, n=n, model=model)
         new_prompts = []
         for r in res:   
             new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
@@ -310,14 +310,14 @@ class OnlineProTeGi(PromptOptimizer):
         new_instructions = [x for x in new_instructions if x]
         return new_instructions
 
-    def get_gradients(self, prompt, task_section, task, gpt4, texts, labels, preds):
+    def get_gradients(self, prompt, task_section, task, gpt4, texts, labels, preds, model='gpt-4o-mini'):
         """ Get "gradients" for a prompt based on sampled error strings."""
         prompt_feedbacks = []
         for _ in tqdm(range(self.opt['n_gradients']), total=self.opt['n_gradients'], desc='gradients..'):
             error_string = self._sample_error_str(
                 texts, labels, preds, task, n=self.opt['errors_per_gradient'])
             gradients = self._get_gradients(
-                task_section, error_string, self.opt['gradients_per_error'], n=1)
+                task_section, error_string, self.opt['gradients_per_error'], n=1, model=model)
             prompt_feedbacks += [(t, error_string) for t in gradients]
         return prompt_feedbacks
 
@@ -338,11 +338,11 @@ class OnlineProTeGi(PromptOptimizer):
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
-                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds)
+                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, model=self.opt['gradient_model'])
                 new_task_sections = []
                 for feedback, error_string in tqdm(gradients, desc='applying gradients'):
                     tmp = self.apply_gradient(
-                        task_section, error_string, feedback, self.opt['steps_per_gradient'])
+                        task_section, error_string, feedback, self.opt['steps_per_gradient'], model=self.opt['editing_model'])
                     new_task_sections += tmp
 
             # generate synonyms
@@ -413,31 +413,23 @@ class OnlineProTeGi(PromptOptimizer):
         for prompt in tqdm(prompts, desc=f'expanding {len(prompts)} prompts'):
             sections = utils.parse_sectioned_prompt(prompt)
             task_section = sections['task'].strip()
-            # with open(self.opt['out'], 'a') as outf:
-            #     outf.write(f"original task section stripped: {task_section}\n")
-            # task_section = sections['task']
-            # with open(self.opt['out'], 'a') as outf:
-            #     outf.write(f"original task section unstripped: {task_section}\n")
 
             # evaluate prompt on new minibatch
-            f1, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch)
+            f1, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
             # with open(self.opt['out'], 'a') as outf:
             #     outf.write(f"f1: {f1}\n")
 
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
-                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds)
+                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, model=self.opt["gradient_model"])
                 new_task_sections = []
-                with open(self.opt['out'], 'a') as outf:
-                    outf.write(f"gradients: {gradients}\n")
+                # with open(self.opt['out'], 'a') as outf:
+                #     outf.write(f"gradients: {gradients}\n")
                 for feedback, error_string in tqdm(gradients, desc='applying gradients'):
                     tmp = self.apply_gradient(
-                        task_section, error_string, feedback, self.opt['steps_per_gradient'])
-                    # tmp[0] += "\n"
+                        task_section, error_string, feedback, self.opt['steps_per_gradient'], model=self.opt["editing_model"])
                     new_task_sections += tmp
-                    # with open(self.opt['out'], 'a') as outf:
-                    #     outf.write(f"new task section: {tmp}\n")
                     
             tmp_new_prompts = [
                 prompt.replace(task_section, tmp) 
