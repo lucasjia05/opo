@@ -205,7 +205,7 @@ class ProTeGi(PromptOptimizer):
 class OnlineProTeGi(PromptOptimizer):
     """ ProTeGi: Prompt Optimization with Textual Gradients
     """
-    def _sample_error_str(self, texts, labels, preds, task, n=4):
+    def _sample_error_str(self, texts, labels, preds, responses, task, n=4):
         """ Sample n error strings from the given texts, labels, and preds"""
         error_idxs = []
         for i, (l, p) in enumerate(zip(labels, preds)):
@@ -227,12 +227,13 @@ class OnlineProTeGi(PromptOptimizer):
         sample_texts = [texts[i] for i in sample_idxs]
         sample_labels = [labels[i] for i in sample_idxs]
         sample_preds = [preds[i] for i in sample_idxs]
+        sample_resps = [responses[i] for i in sample_idxs]
         error_string = ''
         num_errors = 0
         error_idx = 0
-        for i, (t, l, p) in enumerate(zip(sample_texts, sample_labels, sample_preds)):
+        for i, (t, l, p, r) in enumerate(zip(sample_texts, sample_labels, sample_preds, sample_resps)):
             error_string += f'## Example {error_idx+1}\n'
-            error_string += f'Text: \"{t.strip()}\"\nLabel: {task.stringify_prediction(l)}\nPrediction: {task.stringify_prediction(p)}\n\n'
+            error_string += f'Text: \"{t.strip()}\"\nLabel: {task.stringify_prediction(l)}\nPrediction: {task.stringify_prediction(p)}\nResponse: {r.strip()}\n\n'
             error_idx += 1
         return error_string.strip()
 
@@ -253,11 +254,19 @@ class OnlineProTeGi(PromptOptimizer):
 
     def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1, model="gpt-4o"):
         """ Get "gradients" for a prompt based on the error string."""
+        acc = self.metrics["acc"][0]
+        overall_acc = self.metrics["acc"][0] / len(self.metrics["acc"])
         gradient_prompt = f"""
         I'm trying to write a zero-shot binary classifier prompt.
+
+        Here is the average accuracy for all the tested prompts so far:
+        {overall_acc}
     
         My current prompt is:
         "{prompt}"
+
+        Here is the current prompt's accuracy:
+        {acc}
 
         But this prompt gets the following examples wrong:
         {error_string}
@@ -272,10 +281,11 @@ class OnlineProTeGi(PromptOptimizer):
         new_prompts = []
         # with open(self.opt['out'], 'a') as outf:
         #     outf.write(f"errors: {error_string}\n")
+        with open(self.opt['out'], 'a') as outf:
+            # outf.write(f"error string: {error_string}\n")
+            outf.write(f"gradients: {res}\n")
         for r in res:    
             feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
-        with open(self.opt['out'], 'a') as outf:
-            outf.write(f"gradients: {feedbacks}\n")
         return feedbacks
 
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1, model="gpt-4o"):
@@ -310,12 +320,12 @@ class OnlineProTeGi(PromptOptimizer):
         new_instructions = [x for x in new_instructions if x]
         return new_instructions
 
-    def get_gradients(self, prompt, task_section, task, gpt4, texts, labels, preds, model='gpt-4o-mini'):
+    def get_gradients(self, prompt, task_section, task, gpt4, texts, labels, preds, responses, model='gpt-4o-mini'):
         """ Get "gradients" for a prompt based on sampled error strings."""
         prompt_feedbacks = []
         for _ in tqdm(range(self.opt['n_gradients']), total=self.opt['n_gradients'], desc='gradients..'):
             error_string = self._sample_error_str(
-                texts, labels, preds, task, n=self.opt['errors_per_gradient'])
+                texts, labels, preds, responses, task, n=self.opt['errors_per_gradient'])
             gradients = self._get_gradients(
                 task_section, error_string, self.opt['gradients_per_error'], n=1, model=model)
             prompt_feedbacks += [(t, error_string) for t in gradients]
@@ -415,14 +425,14 @@ class OnlineProTeGi(PromptOptimizer):
             task_section = sections['task'].strip()
 
             # evaluate prompt on new minibatch
-            f1, texts, labels, preds = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
+            f1, texts, labels, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
             # with open(self.opt['out'], 'a') as outf:
             #     outf.write(f"f1: {f1}\n")
 
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
-                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, model=self.opt["gradient_model"])
+                gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, responses, model=self.opt["gradient_model"])
                 new_task_sections = []
                 # with open(self.opt['out'], 'a') as outf:
                 #     outf.write(f"gradients: {gradients}\n")

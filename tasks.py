@@ -42,26 +42,28 @@ class ClassificationTask(DataProcessor):
         labels = []
         preds = []
         texts = []
+        responses = []
         with concurrent.futures.ProcessPoolExecutor(max_workers=self.max_threads) as executor:
             futures = [executor.submit(process_example, ex, predictor, prompt) for ex in test_exs[:n]]
             for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='running evaluate'):
                 ex, pred = future.result()
                 texts.append(ex['text'])
                 labels.append(ex['label'])
-                preds.append(pred)
+                responses.append(pred)
+                preds.append(1 if pred.strip().upper().endswith("{LABEL : YES}") else 0)
 
         accuracy = accuracy_score(labels, preds)
         f1 = f1_score(labels, preds, average='micro')
-        return f1, texts, labels, preds
+        return f1, texts, labels, preds, responses
 
     def evaluate(self, predictor, prompt, test_exs, n=100):
         while True:
             try:
-                f1, texts, labels, preds = self.run_evaluate(predictor, prompt, test_exs, n=n)
+                f1, texts, labels, preds, responses = self.run_evaluate(predictor, prompt, test_exs, n=n)
                 break
             except (concurrent.futures.process.BrokenProcessPool, requests.exceptions.SSLError):
                 pass
-        return f1, texts, labels, preds
+        return f1, texts, labels, preds, responses
 
 
 class BinaryClassificationTask(ClassificationTask):
