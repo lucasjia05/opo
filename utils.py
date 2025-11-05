@@ -8,6 +8,7 @@ import requests
 import config
 import string
 
+# TODO: add function to clean response text, need to decide how to have the LLM output the label
 
 def parse_sectioned_prompt(s):
 

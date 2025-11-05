@@ -130,3 +130,43 @@ class DefaultHFBinaryTask(BinaryClassificationTask):
             row = json.loads(row.strip())
             exs.append({'id': f'test-{i}', 'label': row['label'], 'text': row['text']})
         return exs
+
+class MMLUTask(ClassificationTask):
+    categories = ['A', 'B', 'C', 'D']
+
+    def stringify_prediction(self, pred):
+        return MMLUTask.categories[pred]
+
+    def get_train_examples(self):
+        exs = []
+        for i, row in enumerate(open(self.subject_dir + '/train.jsonl')):
+            row = json.loads(row.strip())
+            exs.append({'id': f'train-{i}', 'label': row['label'], 'text': row['text'], 'choices': row['choices']})
+        return exs
+    
+    def get_test_examples(self):
+        exs = []
+        for i, row in enumerate(open(self.subject_dir + '/test.jsonl')):
+            row = json.loads(row.strip())
+            exs.append({'id': f'test-{i}', 'label': row['label'], 'text': row['text'], 'choices': row['choices']})
+        return exs
+
+    # TODO update for multi-class, need to map predicted text to class index
+    def run_evaluate(self, predictor, prompt, test_exs, n=100):
+        labels = []
+        preds = []
+        texts = []
+        responses = []
+        with concurrent.futures.ProcessPoolExecutor(max_workers=self.max_threads) as executor:
+            futures = [executor.submit(process_example, ex, predictor, prompt) for ex in test_exs]  # processes all examples now
+            for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='running evaluate'):
+                ex, pred = future.result()
+                texts.append(ex['text'])
+                labels.append(ex['label'])
+                responses.append(pred)
+                preds.append(1 if pred.strip().upper().endswith("{LABEL : YES}") else 0)
+
+        accuracy = accuracy_score(labels, preds)
+        print("accuracy:", accuracy)
+        f1 = f1_score(labels, preds, average='micro')
+        return f1, texts, labels, preds, responses

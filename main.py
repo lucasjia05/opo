@@ -11,6 +11,66 @@ import tasks
 import predictors
 import optimizers
 import math
+import random
+
+subjects = [
+    "abstract_algebra",
+    "anatomy",
+    "astronomy",
+    "business_ethics",
+    "clinical_knowledge",
+    "college_biology",
+    "college_chemistry",
+    "college_computer_science",
+    "college_mathematics",
+    "college_medicine",
+    "college_physics",
+    "computer_security",
+    "conceptual_physics",
+    "econometrics",
+    "electrical_engineering",
+    "elementary_mathematics",
+    "formal_logic",
+    "global_facts",
+    "high_school_biology",
+    "high_school_chemistry",
+    "high_school_computer_science",
+    "high_school_european_history",
+    "high_school_geography",
+    "high_school_government_and_politics",
+    "high_school_macroeconomics",
+    "high_school_mathematics",
+    "high_school_microeconomics",
+    "high_school_physics",
+    "high_school_psychology",
+    "high_school_statistics",
+    "high_school_us_history",
+    "high_school_world_history",
+    "human_aging",
+    "human_sexuality",
+    "international_law",
+    "jurisprudence",
+    "logical_fallacies",
+    "machine_learning",
+    "management",
+    "marketing",
+    "medical_genetics",
+    "moral_disputes",
+    "moral_scenarios",
+    "nutrition",
+    "philosophy",
+    "prehistory",
+    "professional_accounting",
+    "professional_law",
+    "professional_medicine",
+    "professional_psychology",
+    "public_relations",
+    "security_studies",
+    "sociology",
+    "us_foreign_policy",
+    "virology",
+    "world_religions",
+]
 
 def get_task_class(task_name):
     if task_name == 'ethos':
@@ -21,6 +81,8 @@ def get_task_class(task_name):
         return tasks.DefaultHFBinaryTask
     elif task_name == 'ar_sarcasm':
         return tasks.DefaultHFBinaryTask
+    elif task_name == 'mmlu':
+        return tasks.MMLUTask
     else:
         raise Exception(f'Unsupported task: {task_name}')
 
@@ -49,14 +111,14 @@ def get_scorer(scorer):
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--task', default='liar')
-    parser.add_argument('--data_dir', default='data/liar')
-    parser.add_argument('--prompts', default='prompts/liar.md')
+    parser.add_argument('--task', default='mmlu')
+    parser.add_argument('--data_dir', default='data/mmlu')
+    parser.add_argument('--prompts', default='prompts/mmlu.md')
     parser.add_argument('--task_model', default='gpt-4o-mini')
     parser.add_argument('--gradient_model', default='gpt-4o')
     parser.add_argument('--editing_model', default='gpt-4o')
     # parser.add_argument('--config', default='default.json')
-    parser.add_argument('--out', default='expts/liar_test0.txt')
+    parser.add_argument('--out', default='expts/mmlu_test0.txt')
     parser.add_argument('--max_threads', default=32, type=int)
     parser.add_argument('--temperature', default=0.0, type=float)
 
@@ -108,16 +170,6 @@ if __name__ == '__main__':
     optimizer = optimizers.OnlineProTeGi(
         config, evaluator, scorer, args.max_threads, bf_eval)
 
-    train_exs = task.get_train_examples()
-    # convert to n groups
-    if math.floor(len(train_exs) / config['rounds']) < config['minibatch_size']:
-        config['rounds'] = math.floor(len(train_exs) / config['minibatch_size'])
-        print("Warning: minibatch size too large, reducing number of rounds to {} to fit data size.".format(config['rounds']))
-    chunk_size = math.ceil(len(train_exs) / config['rounds'])
-    grouped_train_exs = [train_exs[i:i + chunk_size] for i in range(0, len(train_exs), chunk_size)]
-
-    test_exs = task.get_test_examples()
-
     if os.path.exists(args.out):
         os.remove(args.out)
 
@@ -128,41 +180,55 @@ if __name__ == '__main__':
 
     candidates = [open(fp.strip()).read() for fp in args.prompts.split(',')]
 
-    for round in tqdm(range(1, config['rounds'] + 1)):
-        print("STARTING ROUND ", round)
-        start = time.time()
+    SEED = 42
+    random.seed(SEED)
+    random.shuffle(subjects)
 
-        # expand candidates
-        if round > 0:
-            with open(args.out, 'a') as outf:
-                outf.write(f"======== ROUND {round}\n")
-                outf.write(f'current prompt: {candidates}\n')
-            train_exs = grouped_train_exs[round - 1]
-            new_prompts = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
-            if new_prompts:
-                candidates = new_prompts
-            else:
+    # loop for each subject
+    for i, subject in enumerate(subjects, start=1):
+        print(f"==========STARTING SUBJECT {i}: {subject}==========")
+        task.subject_dir = f'{task.data_dir}/{subject}'
+        train_exs = task.get_train_examples()
+        test_exs = task.get_test_examples()
+        print(f"train size: {len(train_exs)}, test size: {len(test_exs)}")
+        print(f"example train ex: {train_exs[0]}")
+        print(f"example test ex: {test_exs[0]}")
+        """
+        for round in tqdm(range(1, config['rounds'] + 1)):
+            print("STARTING ROUND ", round)
+            start = time.time()
+
+            # expand candidates
+            if round > 0:
                 with open(args.out, 'a') as outf:
-                    outf.write(f"iterate failed, continuing with current prompt\n")
+                    outf.write(f"======== ROUND {round}\n")
+                    outf.write(f'current prompt: {candidates}\n')
+                train_exs = grouped_train_exs[round - 1]
+                new_prompts = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
+                if new_prompts:
+                    candidates = new_prompts
+                else:
+                    with open(args.out, 'a') as outf:
+                        outf.write(f"iterate failed, continuing with current prompt\n")
 
-        # score candidates
-        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
-        [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
+            # score candidates
+            scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
+            [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
-        # select candidates
-        candidates = candidates[:config['beam_size']]
-        # scores = scores[:config['beam_size']]
+            # select candidates
+            candidates = candidates[:config['beam_size']]
+            # scores = scores[:config['beam_size']]
 
-        # record candidates, estimated scores, and true scores
-        with open(args.out, 'a') as outf:
-            outf.write(f'{time.time() - start}\n')
-            # outf.write(f'{scores}\n')
-        
-        # metrics = []
-        # for candidate, score in zip(candidates, scores):
-        #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-        #     metrics.append(f1)
-        # with open(args.out, 'a') as outf:  
-        #     outf.write(f'test set accuracy: {metrics}\n')
+            # record candidates, estimated scores, and true scores
+            with open(args.out, 'a') as outf:
+                outf.write(f'{time.time() - start}\n')
+                # outf.write(f'{scores}\n')
+            
+            # metrics = []
+            # for candidate, score in zip(candidates, scores):
+            #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
+            #     metrics.append(f1)
+            # with open(args.out, 'a') as outf:  
+            #     outf.write(f'test set accuracy: {metrics}\n')"""
 
     print("DONE!")
