@@ -418,13 +418,18 @@ class OnlineProTeGi(PromptOptimizer):
             task_section = sections['task'].strip()
 
             # evaluate prompt on new minibatch
-            f1, texts, labels, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
+            f1, texts, labels, choices, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
+            #print("texts[0]:", texts[0])
+            #print("choices[0]:", choices[0])
+            #print("responses[0]:", responses[0])
+            #print("labels[0]:", labels[0])
             self.metrics["f1"].append(f1)
             self.metrics['avg_f1'] = sum(self.metrics["f1"]) / len(self.metrics["f1"])
 
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
+                # TODO double check gradient prompts and responses
                 gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, responses, model=self.opt["gradient_model"])
                 new_task_sections = []
                 # with open(self.opt['out'], 'a') as outf:

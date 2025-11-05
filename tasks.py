@@ -6,6 +6,7 @@ from typing import List, Dict, Callable
 from tqdm import tqdm
 import pandas as pd
 from sklearn.metrics import accuracy_score, f1_score, classification_report
+from utils import clean_output
 
 class DataProcessor(ABC):
     def __init__(self, data_dir, max_threads=1):
@@ -151,22 +152,32 @@ class MMLUTask(ClassificationTask):
             exs.append({'id': f'test-{i}', 'label': row['label'], 'text': row['text'], 'choices': row['choices']})
         return exs
 
-    # TODO update for multi-class, need to map predicted text to class index
-    def run_evaluate(self, predictor, prompt, test_exs, n=100):
+    def run_evaluate(self, predictor, prompt, test_exs):
         labels = []
         preds = []
         texts = []
+        choices = []
         responses = []
         with concurrent.futures.ProcessPoolExecutor(max_workers=self.max_threads) as executor:
             futures = [executor.submit(process_example, ex, predictor, prompt) for ex in test_exs]  # processes all examples now
             for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='running evaluate'):
                 ex, pred = future.result()
                 texts.append(ex['text'])
+                choices.append(ex['choices'])
                 labels.append(ex['label'])
                 responses.append(pred)
-                preds.append(1 if pred.strip().upper().endswith("{LABEL : YES}") else 0)
+                preds.append(clean_output(pred))
 
         accuracy = accuracy_score(labels, preds)
-        print("accuracy:", accuracy)
+        #print("accuracy:", accuracy)
         f1 = f1_score(labels, preds, average='micro')
-        return f1, texts, labels, preds, responses
+        return f1, texts, labels, choices, preds, responses
+
+    def evaluate(self, predictor, prompt, test_exs, n):
+        while True:
+            try:
+                f1, texts, labels, choices, preds, responses = self.run_evaluate(predictor, prompt, test_exs)
+                break
+            except (concurrent.futures.process.BrokenProcessPool, requests.exceptions.SSLError):
+                pass
+        return f1, texts, labels, choices, preds, responses

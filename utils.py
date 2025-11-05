@@ -7,8 +7,23 @@ import time
 import requests
 import config
 import string
+import re
 
-# TODO: add function to clean response text, need to decide how to have the LLM output the label
+# returns 0 for A, 1 for B, etc, -1 for no match
+def clean_output(pred):
+    if not isinstance(pred, str):
+        raise ValueError("Prediction must be a string.")
+
+    pred = pred.strip()
+
+    # match 'Answer: <LETTER>'
+    match = re.search(r"Answer:\s*([A-Da-d])\s*$", pred)
+    if not match:
+        return -1
+
+    letter = match.group(1).upper()
+    index = ord(letter) - ord('A')
+    return index
 
 def parse_sectioned_prompt(s):
 

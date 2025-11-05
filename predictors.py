@@ -34,13 +34,17 @@ class BinaryPredictor(GPT4Predictor):
         return response
 
 class MMLUPredictor(GPT4Predictor):
-
     def inference(self, ex, prompt):
-        # STUB
-        prompt = Template(prompt).render(text=ex['text'])
+        formatted_choices = "\n".join(
+            [f"({chr(65+i)}) {choice}" for i, choice in enumerate(ex['choices'])]
+        )
+        prompt = Template(prompt).render(
+            text=ex['text'], 
+            choices=formatted_choices
+        )
+        #print(prompt)
         response = utils.chatgpt(
             prompt, max_tokens=2048, n=1, timeout=30, 
             temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
-        # pred = 1 if "{LABEL : YES}" in response.strip().upper() else 0
-        # pred = 1 if response.strip().upper().endswith("{LABEL : YES}") else 0
+        #print("response: ", response)
         return response

@@ -99,8 +99,6 @@ def get_evaluator(evaluator):
     else:
         raise Exception(f'Unsupported evaluator: {evaluator}')
 
-
-
 def get_scorer(scorer):
     if scorer == '01':
         return scorers.Cached01Scorer
@@ -115,8 +113,8 @@ def get_args():
     parser.add_argument('--data_dir', default='data/mmlu')
     parser.add_argument('--prompts', default='prompts/mmlu.md')
     parser.add_argument('--task_model', default='gpt-4o-mini')
-    parser.add_argument('--gradient_model', default='gpt-4o')
-    parser.add_argument('--editing_model', default='gpt-4o')
+    parser.add_argument('--gradient_model', default='gpt-4o-mini')
+    parser.add_argument('--editing_model', default='gpt-4o-mini')
     # parser.add_argument('--config', default='default.json')
     parser.add_argument('--out', default='expts/mmlu_test0.txt')
     parser.add_argument('--max_threads', default=32, type=int)
@@ -165,7 +163,7 @@ if __name__ == '__main__':
     scorer = get_scorer(args.scorer)()
     evaluator = get_evaluator(args.evaluator)(config)
     bf_eval = get_evaluator('bf')(config)
-    gpt4 = predictors.BinaryPredictor(config)
+    predictor = predictors.MMLUPredictor(config)
 
     optimizer = optimizers.OnlineProTeGi(
         config, evaluator, scorer, args.max_threads, bf_eval)
@@ -187,48 +185,48 @@ if __name__ == '__main__':
     # loop for each subject
     for i, subject in enumerate(subjects, start=1):
         print(f"==========STARTING SUBJECT {i}: {subject}==========")
+        with open(args.out, 'a') as outf:
+            outf.write(f"==========STARTING SUBJECT {i}: {subject}==========\n")
         task.subject_dir = f'{task.data_dir}/{subject}'
         train_exs = task.get_train_examples()
         test_exs = task.get_test_examples()
-        print(f"train size: {len(train_exs)}, test size: {len(test_exs)}")
-        print(f"example train ex: {train_exs[0]}")
-        print(f"example test ex: {test_exs[0]}")
-        """
+        #print(f"train size: {len(train_exs)}, test size: {len(test_exs)}")
+        #print(f"example train ex: {train_exs[0]}")
+        #print(f"example test ex: {test_exs[0]}")
+        
         for round in tqdm(range(1, config['rounds'] + 1)):
             print("STARTING ROUND ", round)
             start = time.time()
 
             # expand candidates
-            if round > 0:
-                with open(args.out, 'a') as outf:
-                    outf.write(f"======== ROUND {round}\n")
-                    outf.write(f'current prompt: {candidates}\n')
-                train_exs = grouped_train_exs[round - 1]
-                new_prompts = optimizer.iterate_one_prompt(candidates, task, gpt4, train_exs)
-                if new_prompts:
-                    candidates = new_prompts
-                else:
-                    with open(args.out, 'a') as outf:
-                        outf.write(f"iterate failed, continuing with current prompt\n")
-
-            # score candidates
-            scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
-            [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
-
-            # select candidates
-            candidates = candidates[:config['beam_size']]
-            # scores = scores[:config['beam_size']]
-
-            # record candidates, estimated scores, and true scores
             with open(args.out, 'a') as outf:
-                outf.write(f'{time.time() - start}\n')
-                # outf.write(f'{scores}\n')
-            
-            # metrics = []
-            # for candidate, score in zip(candidates, scores):
-            #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-            #     metrics.append(f1)
-            # with open(args.out, 'a') as outf:  
-            #     outf.write(f'test set accuracy: {metrics}\n')"""
+                outf.write(f"======== ROUND {round} =========\n")
+                outf.write(f'current prompt: {candidates}\n')
+            new_prompts = optimizer.iterate_one_prompt(candidates, task, predictor, train_exs)
+            if new_prompts:
+                candidates = new_prompts
+            else:
+                with open(args.out, 'a') as outf:
+                    outf.write(f"iterate failed, continuing with current prompt\n")
+        """
+        # score candidates
+        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
+        [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
+
+        # select candidates
+        candidates = candidates[:config['beam_size']]
+        # scores = scores[:config['beam_size']]
+
+        # record candidates, estimated scores, and true scores
+        with open(args.out, 'a') as outf:
+            outf.write(f'{time.time() - start}\n')
+            # outf.write(f'{scores}\n')
+        
+        # metrics = []
+        # for candidate, score in zip(candidates, scores):
+        #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
+        #     metrics.append(f1)
+        # with open(args.out, 'a') as outf:  
+        #     outf.write(f'test set accuracy: {metrics}\n')"""
 
     print("DONE!")
