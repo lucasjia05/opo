@@ -118,7 +118,8 @@ def get_args():
     parser.add_argument('--gradient_model', default='gpt-4o-mini')
     parser.add_argument('--editing_model', default='gpt-4o-mini')
     # parser.add_argument('--config', default='default.json')
-    parser.add_argument('--out', default='expts/mmlu_test0.txt')
+    parser.add_argument('--out', default='expts/mmlu_test0.out')
+    parser.add_argument('--logs', default='expts/mmlu_log0.out')
     parser.add_argument('--max_threads', default=32, type=int)
     parser.add_argument('--temperature', default=0.0, type=float)
 
@@ -172,6 +173,7 @@ if __name__ == '__main__':
 
     if os.path.exists(args.out):
         os.remove(args.out)
+        os.remove(args.logs)
 
     print(config)
 
@@ -187,7 +189,7 @@ if __name__ == '__main__':
     # loop for each subject
     for i, subject in enumerate(subjects, start=1):
         print(f"==========STARTING SUBJECT {i}: {subject}==========")
-        with open(args.out, 'a') as outf:
+        with open(args.logs, 'a') as outf:
             outf.write(f"==========STARTING SUBJECT {i}: {subject}==========\n")
         task.subject_dir = f'{task.data_dir}/{subject}'
         train_exs = task.get_train_examples()
@@ -198,16 +200,15 @@ if __name__ == '__main__':
             start = time.time()
 
             # expand candidates
-            with open(args.out, 'a') as outf:
+            with open(args.logs, 'a') as outf:
                 outf.write(f"======== ROUND {round} =========\n")
                 outf.write(f'current prompt: {candidates}\n')
             new_prompts = optimizer.iterate_one_prompt(candidates, task, predictor, train_exs)
             if new_prompts:
                 candidates = new_prompts
             else:
-                with open(args.out, 'a') as outf:
+                with open(args.logs, 'a') as outf:
                     outf.write(f"iterate failed, continuing with current prompt\n")
-        break
         # score candidates
         #scores = optimizer.score_candidates(candidates, task, predictor, train_exs)
         #[scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
@@ -223,8 +224,10 @@ if __name__ == '__main__':
         #     metrics.append(f1)
         # with open(args.out, 'a') as outf:  
         #     outf.write(f'test set accuracy: {metrics}\n')
+
+        #evaluate_on_all_subjects()
     
-    with open(args.out, 'a') as outf:
-        for v in optimizer.metrics['acc']:
-            outf.write(f'{v}\n')
+    with open(args.logs, 'a') as outf:
+        for i, v in enumerate(optimizer.metrics['acc']):
+            outf.write(f'{i}: {v}\n')
     print("DONE!")
