@@ -33,8 +33,12 @@ class DataProcessor(ABC):
 
 
 def process_example(ex, predictor, prompt):
-    pred = predictor.inference(ex, prompt)
-    return ex, pred
+    try:
+        pred = predictor.inference(ex, prompt)
+        return ex, pred
+    except Exception as e:
+        # return a sentinel so the caller can skip it
+        return ex, None
 
 
 class ClassificationTask(DataProcessor):
@@ -162,6 +166,8 @@ class MMLUTask(ClassificationTask):
             futures = [executor.submit(process_example, ex, predictor, prompt) for ex in test_exs]  # processes all examples now
             for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='running evaluate'):
                 ex, pred = future.result()
+                if pred is None:
+                    continue  # skip this example due to inference error
                 texts.append(ex['text'])
                 choices.append(ex['choices'])
                 labels.append(ex['label'])

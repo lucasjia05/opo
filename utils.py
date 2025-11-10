@@ -31,8 +31,6 @@ def parse_sectioned_prompt(s):
     current_header = None
 
     for line in s.split('\n'):
-        line = line.strip()
-
         if line.startswith('# '):
             # first word without punctuation
             current_header = line[2:].strip().lower().split()[0]

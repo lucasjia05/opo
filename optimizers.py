@@ -227,13 +227,14 @@ class OnlineProTeGi(PromptOptimizer):
         error_idx = 0
         for i, (t, l, p, r) in enumerate(zip(sample_texts, sample_labels, sample_preds, sample_resps)):
             error_string += f'## Example {error_idx+1}\n'
-            error_string += f'Text: \"{t.strip()}\"\nLabel: {task.stringify_prediction(l)}\nPrediction: {task.stringify_prediction(p)}\nResponse: {r.strip()}\n\n'
+            error_string += f'Text: \"{t.strip()}\"\nCorrect Answer: {task.stringify_prediction(l)}\nResponse: {r.strip()}\n\n'
             error_idx += 1
         return error_string.strip()
 
     def parse_tagged_text(self, text, start_tag, end_tag):
         """ Parse text that is tagged with start and end tags."""
         texts = []
+        text = text.replace("</END>", "<END>").replace("</end>", "<END>").replace("</End>", "<END>")    # added to fix </END> issues
         while True:
             start_index = text.find(start_tag)
             if start_index == -1:
@@ -249,9 +250,9 @@ class OnlineProTeGi(PromptOptimizer):
     def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1, model="gpt-4o"):
         """ Get "gradients" for a prompt based on the error string."""
         acc = self.metrics["acc"][-1]
-        overall_acc = self.metrics["acc"][-1] / len(self.metrics["acc"])
+        overall_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
         gradient_prompt = f"""
-        I'm trying to write a zero-shot binary classifier prompt.
+        I'm trying to write a multiple-choice question answering prompt across different subject areas.
 
         Here is the average accuracy for all the tested prompts so far:
         {overall_acc}
@@ -265,7 +266,7 @@ class OnlineProTeGi(PromptOptimizer):
         But this prompt gets the following examples wrong:
         {error_string}
 
-        Give a reason why the prompt could have gotten these examples wrong.
+        Give a reason why the prompt could have gotten these examples wrong. Examples may come from different subjects areas than the previous prompt is expecting.
         Wrap the reason with <START> and <END>. Do not include <START> and <END> anywhere else in your response, except to mark the start and end of the reason.
 
         """
@@ -277,6 +278,8 @@ class OnlineProTeGi(PromptOptimizer):
         #     outf.write(f"errors: {error_string}\n")
         with open(self.opt['out'], 'a') as outf:
             #outf.write(f"error string: {error_string}\n")
+            outf.write("---------------------get gradients---------------\n")
+            outf.write(f"prompt: {gradient_prompt}\n")
             outf.write(f"gradients: {res}\n")
         for r in res:    
             feedbacks += self.parse_tagged_text(r, "<START>", "<END>")
@@ -285,7 +288,7 @@ class OnlineProTeGi(PromptOptimizer):
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1, model="gpt-4o"):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a zero-shot binary classifier prompt.
+        I'm trying to write a multiple choice question answering prompt across different subject areas.
         
         My current prompt is:
         "{prompt}"
@@ -303,6 +306,11 @@ class OnlineProTeGi(PromptOptimizer):
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
         res = utils.chatgpt(transformation_prompt, n=n, model=model)
         new_prompts = []
+        with open(self.opt['out'], 'a') as outf:
+            #outf.write(f"error string: {error_string}\n")
+            outf.write("---------------------apply gradients---------------\n")
+            outf.write(f"prompt: {transformation_prompt}\n")
+            outf.write(f"new prompts: {res}\n")
         for r in res:   
             new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
         return new_prompts
@@ -416,6 +424,8 @@ class OnlineProTeGi(PromptOptimizer):
         for prompt in tqdm(prompts, desc=f'expanding {len(prompts)} prompts'):
             sections = utils.parse_sectioned_prompt(prompt)
             task_section = sections['task'].strip()
+            with open(self.opt['out'], 'a') as outf:
+                outf.write(f"task section: {task_section}\n")
 
             # evaluate prompt on new minibatch
             f1, texts, labels, choices, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
@@ -430,13 +440,11 @@ class OnlineProTeGi(PromptOptimizer):
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
                 gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, responses, model=self.opt["gradient_model"])
-                new_task_sections = []
                 # with open(self.opt['out'], 'a') as outf:
                 #     outf.write(f"gradients: {gradients}\n")
                 for feedback, error_string in tqdm(gradients, desc='applying gradients'):
-                    tmp = self.apply_gradient(
+                    new_task_sections += self.apply_gradient(
                         task_section, error_string, feedback, self.opt['steps_per_gradient'], model=self.opt["editing_model"])
-                    new_task_sections += tmp
                     
             tmp_new_prompts = [
                 prompt.replace(task_section, tmp) 

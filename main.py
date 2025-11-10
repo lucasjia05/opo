@@ -12,6 +12,8 @@ import predictors
 import optimizers
 import math
 import random
+import utils
+
 
 subjects = [
     "abstract_algebra",
@@ -205,15 +207,15 @@ if __name__ == '__main__':
             else:
                 with open(args.out, 'a') as outf:
                     outf.write(f"iterate failed, continuing with current prompt\n")
-        
+        break
         # score candidates
-        scores = optimizer.score_candidates(candidates, task, predictor, train_exs)
+        #scores = optimizer.score_candidates(candidates, task, predictor, train_exs)
         #[scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
         # record candidates, estimated scores, and true scores
-        with open(args.out, 'a') as outf:
-            # outf.write(f'{time.time() - start}\n')
-            outf.write(f'{scores}\n')
+        #with open(args.out, 'a') as outf:
+        #    # outf.write(f'{time.time() - start}\n')
+        #    outf.write(f'{scores}\n')
         
         # metrics = []
         # for candidate, score in zip(candidates, scores):
@@ -221,5 +223,8 @@ if __name__ == '__main__':
         #     metrics.append(f1)
         # with open(args.out, 'a') as outf:  
         #     outf.write(f'test set accuracy: {metrics}\n')
-
+    
+    with open(args.out, 'a') as outf:
+        for v in optimizer.metrics['acc']:
+            outf.write(f'{v}\n')
     print("DONE!")
