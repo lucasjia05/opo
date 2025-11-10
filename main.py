@@ -190,9 +190,6 @@ if __name__ == '__main__':
         task.subject_dir = f'{task.data_dir}/{subject}'
         train_exs = task.get_train_examples()
         test_exs = task.get_test_examples()
-        #print(f"train size: {len(train_exs)}, test size: {len(test_exs)}")
-        #print(f"example train ex: {train_exs[0]}")
-        #print(f"example test ex: {test_exs[0]}")
         
         for round in tqdm(range(1, config['rounds'] + 1)):
             print("STARTING ROUND ", round)
@@ -208,25 +205,21 @@ if __name__ == '__main__':
             else:
                 with open(args.out, 'a') as outf:
                     outf.write(f"iterate failed, continuing with current prompt\n")
-        """
+        
         # score candidates
-        scores = optimizer.score_candidates(candidates, task, gpt4, train_exs)
-        [scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
-
-        # select candidates
-        candidates = candidates[:config['beam_size']]
-        # scores = scores[:config['beam_size']]
+        scores = optimizer.score_candidates(candidates, task, predictor, train_exs)
+        #[scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
         # record candidates, estimated scores, and true scores
         with open(args.out, 'a') as outf:
-            outf.write(f'{time.time() - start}\n')
-            # outf.write(f'{scores}\n')
+            # outf.write(f'{time.time() - start}\n')
+            outf.write(f'{scores}\n')
         
         # metrics = []
         # for candidate, score in zip(candidates, scores):
         #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
         #     metrics.append(f1)
         # with open(args.out, 'a') as outf:  
-        #     outf.write(f'test set accuracy: {metrics}\n')"""
+        #     outf.write(f'test set accuracy: {metrics}\n')
 
     print("DONE!")

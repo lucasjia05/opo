@@ -23,7 +23,8 @@ class Cached01Scorer:
             with concurrent.futures.ProcessPoolExecutor(max_workers=max_threads) as executor:
                 futures = [executor.submit(predict_on_example, ex) for ex in inputs]
                 for i, future in tqdm(enumerate(concurrent.futures.as_completed(futures)), total=len(futures), desc='01 scorer'):
-                    prompt, ex, pred = future.result()            
+                    prompt, ex, pred = future.result()     
+                    pred = clean_output(pred)       
                     if pred == ex['label']:
                         out_scores[f'{ex}-{prompt}'] = 1
                     else:

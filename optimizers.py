@@ -248,8 +248,8 @@ class OnlineProTeGi(PromptOptimizer):
 
     def _get_gradients(self, prompt, error_string, num_feedbacks=1, n=1, model="gpt-4o"):
         """ Get "gradients" for a prompt based on the error string."""
-        acc = self.metrics["acc"][0]
-        overall_acc = self.metrics["acc"][0] / len(self.metrics["acc"])
+        acc = self.metrics["acc"][-1]
+        overall_acc = self.metrics["acc"][-1] / len(self.metrics["acc"])
         gradient_prompt = f"""
         I'm trying to write a zero-shot binary classifier prompt.
 
@@ -429,7 +429,6 @@ class OnlineProTeGi(PromptOptimizer):
             # get gradients
             new_task_sections = []
             if self.opt['n_gradients'] > 0:
-                # TODO double check gradient prompts and responses
                 gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, labels, preds, responses, model=self.opt["gradient_model"])
                 new_task_sections = []
                 # with open(self.opt['out'], 'a') as outf:
