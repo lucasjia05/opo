@@ -175,15 +175,35 @@ class MMLUTask(ClassificationTask):
                 preds.append(clean_output(pred))
 
         accuracy = accuracy_score(labels, preds)
-        #print("accuracy:", accuracy)
         f1 = f1_score(labels, preds, average='micro')
-        return f1, texts, labels, choices, preds, responses
+        return f1, accuracy, texts, labels, choices, preds, responses
 
     def evaluate(self, predictor, prompt, test_exs, n):
         while True:
             try:
-                f1, texts, labels, choices, preds, responses = self.run_evaluate(predictor, prompt, test_exs)
+                f1, accuracy, texts, labels, choices, preds, responses = self.run_evaluate(predictor, prompt, test_exs)
                 break
             except (concurrent.futures.process.BrokenProcessPool, requests.exceptions.SSLError):
                 pass
-        return f1, texts, labels, choices, preds, responses
+        return f1, accuracy, texts, labels, choices, preds, responses
+
+    def evaluate_on_all_subjects(self, prompt, predictor, subjects):
+        """
+        Evaluate a single prompt on ALL MMLU subjects.
+        Returns: dict {subject_name: accuracy}
+        """
+        results = {}
+        original_dir = self.subject_dir  # to be restored
+
+        for subj in subjects:
+            self.subject_dir = f"{self.data_dir}/{subj}"
+            test_exs = self.get_test_examples()
+
+            f1, accuracy, texts, labels, choices, preds, responses = self.evaluate(
+                predictor, prompt, test_exs, n=len(test_exs)
+            )
+            results[subj] = accuracy
+
+        # restore original subject dir
+        self.subject_dir = original_dir
+        return results

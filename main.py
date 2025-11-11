@@ -13,7 +13,7 @@ import optimizers
 import math
 import random
 import utils
-
+import csv
 
 subjects = [
     "abstract_algebra",
@@ -72,6 +72,30 @@ subjects = [
     "us_foreign_policy",
     "virology",
     "world_religions",
+]
+
+# just 20 for now
+subjects = [
+    "abstract_algebra",
+    "anatomy",
+    "astronomy",
+    "business_ethics",
+    "clinical_knowledge",
+    "college_biology",
+    "college_chemistry",
+    "college_computer_science",
+    "college_mathematics",
+    "college_medicine",
+    "college_physics",
+    "computer_security",
+    "conceptual_physics",
+    "econometrics",
+    "electrical_engineering",
+    "elementary_mathematics",
+    "formal_logic",
+    "global_facts",
+    "high_school_biology",
+    "high_school_chemistry",
 ]
 
 def get_task_class(task_name):
@@ -173,6 +197,7 @@ if __name__ == '__main__':
 
     if os.path.exists(args.out):
         os.remove(args.out)
+    if os.path.exists(args.logs):
         os.remove(args.logs)
 
     print(config)
@@ -185,15 +210,17 @@ if __name__ == '__main__':
     SEED = 42
     random.seed(SEED)
     random.shuffle(subjects)
+    all_results = {}    # accuracies of all subjects as we go along
 
     # loop for each subject
     for i, subject in enumerate(subjects, start=1):
         print(f"==========STARTING SUBJECT {i}: {subject}==========")
         with open(args.logs, 'a') as outf:
             outf.write(f"==========STARTING SUBJECT {i}: {subject}==========\n")
+        with open(args.out, 'a') as outf:
+            outf.write(f"==========STARTING SUBJECT {i}: {subject}==========\n")
         task.subject_dir = f'{task.data_dir}/{subject}'
         train_exs = task.get_train_examples()
-        test_exs = task.get_test_examples()
         
         for round in tqdm(range(1, config['rounds'] + 1)):
             print("STARTING ROUND ", round)
@@ -203,31 +230,41 @@ if __name__ == '__main__':
             with open(args.logs, 'a') as outf:
                 outf.write(f"======== ROUND {round} =========\n")
                 outf.write(f'current prompt: {candidates}\n')
+            with open(args.out, 'a') as outf:
+                outf.write(f"======== ROUND {round} =========\n")
             new_prompts = optimizer.iterate_one_prompt(candidates, task, predictor, train_exs)
             if new_prompts:
                 candidates = new_prompts
             else:
                 with open(args.logs, 'a') as outf:
                     outf.write(f"iterate failed, continuing with current prompt\n")
-        # score candidates
-        #scores = optimizer.score_candidates(candidates, task, predictor, train_exs)
-        #[scores, candidates] = list(zip(*sorted(list(zip(scores, candidates)), reverse=True)))
 
-        # record candidates, estimated scores, and true scores
-        #with open(args.out, 'a') as outf:
-        #    # outf.write(f'{time.time() - start}\n')
-        #    outf.write(f'{scores}\n')
-        
-        # metrics = []
-        # for candidate, score in zip(candidates, scores):
-        #     f1, texts, labels, preds = task.evaluate(gpt4, candidate, test_exs, n=args.n_test_exs)
-        #     metrics.append(f1)
-        # with open(args.out, 'a') as outf:  
-        #     outf.write(f'test set accuracy: {metrics}\n')
-
-        #evaluate_on_all_subjects()
+        best_prompt = candidates[0]
+        per_subject_scores = task.evaluate_on_all_subjects(
+            best_prompt,
+            predictor,
+            subjects
+        )
+        # store it in our big matrix
+        all_results[subject] = per_subject_scores
     
     with open(args.logs, 'a') as outf:
         for i, v in enumerate(optimizer.metrics['acc']):
             outf.write(f'{i}: {v}\n')
+
+    with open(args.out, "a", newline="") as outf:
+        writer = csv.writer(outf)
+        writer.writerow([])
+        # header row
+        writer.writerow(["train\\eval"] + subjects)
+
+        for train_subj in subjects:
+            row = [train_subj]
+            eval_scores = all_results.get(train_subj, {})
+            for eval_subj in subjects:
+                val = eval_scores.get(eval_subj, "")
+                if isinstance(val, float):
+                    val = f"{val:.4f}"
+                row.append(val)
+            writer.writerow(row)
     print("DONE!")

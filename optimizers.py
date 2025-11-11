@@ -276,7 +276,7 @@ class OnlineProTeGi(PromptOptimizer):
         new_prompts = []
         # with open(self.opt['out'], 'a') as outf:
         #     outf.write(f"errors: {error_string}\n")
-        with open(self.opt['out'], 'a') as outf:
+        with open(self.opt['logs'], 'a') as outf:
             #outf.write(f"error string: {error_string}\n")
             outf.write("---------------------get gradients---------------\n")
             outf.write(f"prompt: {gradient_prompt}\n")
@@ -306,7 +306,7 @@ class OnlineProTeGi(PromptOptimizer):
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
         res = utils.chatgpt(transformation_prompt, n=n, model=model)
         new_prompts = []
-        with open(self.opt['out'], 'a') as outf:
+        with open(self.opt['logs'], 'a') as outf:
             #outf.write(f"error string: {error_string}\n")
             outf.write("---------------------apply gradients---------------\n")
             outf.write(f"prompt: {transformation_prompt}\n")
@@ -424,11 +424,9 @@ class OnlineProTeGi(PromptOptimizer):
         for prompt in tqdm(prompts, desc=f'expanding {len(prompts)} prompts'):
             sections = utils.parse_sectioned_prompt(prompt)
             task_section = sections['task'].strip()
-            with open(self.opt['out'], 'a') as outf:
-                outf.write(f"task section: {task_section}\n")
-
+        
             # evaluate prompt on new minibatch
-            f1, texts, labels, choices, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
+            f1, accuracy, texts, labels, choices, preds, responses = task.evaluate(gpt4, prompt, minibatch, n=self.opt['minibatch_size'])
             #print("texts[0]:", texts[0])
             #print("choices[0]:", choices[0])
             #print("responses[0]:", responses[0])
@@ -450,11 +448,13 @@ class OnlineProTeGi(PromptOptimizer):
                 prompt.replace(task_section, tmp) 
                 for tmp in new_task_sections
             ]
-            with open(self.opt['out'], 'a') as outf:
+            with open(self.opt['logs'], 'a') as outf:
                 #outf.write(f"f1: {self.metrics['f1'][-1]}\n")
                 #outf.write(f"overall f1: {self.metrics['avg_f1']}\n")
                 outf.write(f"acc: {self.metrics['acc'][-1]}\n")
                 outf.write(f"overall acc: {self.metrics['avg_acc']}\n")
+            with open(self.opt['out'], 'a') as outf:
+                outf.write(f"acc: {self.metrics['acc'][-1]}\n")
 
             new_prompts += tmp_new_prompts
         return new_prompts
