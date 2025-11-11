@@ -1,0 +1,15 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4o-mini", "gradient_model": "gpt-4o-mini", "editing_model": "gpt-4o-mini", "out": "expts/mmlu_test4.out", "logs": "expts/mmlu_log4.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 1, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 4, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "eval_budget": 128}
+==========STARTING SUBJECT 1: anatomy==========
+======== ROUND 1 =========
+acc: 0.7532467532467533
+==========STARTING SUBJECT 2: abstract_algebra==========
+======== ROUND 1 =========
+acc: 0.7586206896551724
+==========STARTING SUBJECT 3: astronomy==========
+======== ROUND 1 =========
+acc: 0.9186046511627907
+
+train\eval,anatomy,abstract_algebra,astronomy
+anatomy,0.8182,0.6724,0.8506
+abstract_algebra,0.8571,0.7069,0.8966
+astronomy,0.8182,0.7241,0.8966
