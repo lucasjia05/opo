@@ -98,6 +98,11 @@ subjects = [
     "high_school_chemistry",
 ]
 
+# just chem for now
+subjects = [
+    "college_chemistry",
+]
+
 def get_task_class(task_name):
     if task_name == 'ethos':
         return tasks.EthosBinaryTask
@@ -139,8 +144,8 @@ def get_args():
     parser.add_argument('--data_dir', default='data/mmlu')
     parser.add_argument('--prompts', default='prompts/mmlu.md')
     parser.add_argument('--task_model', default='gpt-4o-mini')
-    parser.add_argument('--gradient_model', default='gpt-4o-mini')
-    parser.add_argument('--editing_model', default='gpt-4o-mini')
+    parser.add_argument('--gradient_model', default='gpt-4o')
+    parser.add_argument('--editing_model', default='gpt-4o')
     # parser.add_argument('--config', default='default.json')
     parser.add_argument('--out', default='expts/mmlu_test0.out')
     parser.add_argument('--logs', default='expts/mmlu_log0.out')
@@ -154,7 +159,6 @@ def get_args():
     parser.add_argument('--n_gradients', default=1, type=int)
     parser.add_argument('--errors_per_gradient', default=4, type=int)
     parser.add_argument('--gradients_per_error', default=1, type=int)
-
 
     parser.add_argument('--steps_per_gradient', default=1, type=int)
     parser.add_argument('--mc_samples_per_step', default=0, type=int)
@@ -174,6 +178,9 @@ def get_args():
     parser.add_argument('--knn_t', default=0.993, type=float)
     parser.add_argument('--reject_on_errors', action='store_true') 
     
+    parser.add_argument("--patience", type=int, default=5, help="Rounds without improvement before early stopping")
+    parser.add_argument("--min_delta", type=float, default=1e-4, help="Minimum improvement in accuracy to reset patience")
+
     args = parser.parse_args()
 
     return args
@@ -221,6 +228,15 @@ if __name__ == '__main__':
             outf.write(f"==========STARTING SUBJECT {i}: {subject}==========\n")
         task.subject_dir = f'{task.data_dir}/{subject}'
         train_exs = task.get_train_examples()
+
+        # reset best prompt and score for each subject
+        optimizer.best_prompt = "N/A"
+        optimizer.best_score = -1
+
+        # patience-related state
+        patience = config.get("patience", None)
+        min_delta = config.get("min_delta", 0.0)
+        no_improve_rounds = 0
         
         for round in tqdm(range(1, config['rounds'] + 1)):
             print("STARTING ROUND ", round)
@@ -232,14 +248,45 @@ if __name__ == '__main__':
                 outf.write(f'current prompt: {candidates}\n')
             with open(args.out, 'a') as outf:
                 outf.write(f"======== ROUND {round} =========\n")
+            
+            # old best before this round
+            prev_best = optimizer.best_score
+
             new_prompts = optimizer.iterate_one_prompt(candidates, task, predictor, train_exs)
             if new_prompts:
                 candidates = new_prompts
             else:
                 with open(args.logs, 'a') as outf:
                     outf.write(f"iterate failed, continuing with current prompt\n")
+                with open(args.out, 'a') as outf:
+                    outf.write(f"iterate failed, continuing with current prompt\n")
 
-        best_prompt = candidates[0]
+            # ---- patience logic ----
+            improved = optimizer.best_score > prev_best + min_delta
+            if improved:
+                no_improve_rounds = 0
+            else:
+                no_improve_rounds += 1
+
+            with open(args.logs, 'a') as outf:
+                outf.write(f"no_improve_rounds={no_improve_rounds}\n")
+
+            if patience is not None and no_improve_rounds >= patience:
+                print(
+                    f"Early stopping on subject {subject} at round {round} "
+                    f"(patience={patience})"
+                )
+                with open(args.logs, 'a') as outf:
+                    outf.write(
+                        f"Early stopping on subject {subject} at round {round} "
+                        f"(patience={patience})\n"
+                    )
+                break
+        sections = utils.parse_sectioned_prompt(candidates[0])
+        task_section = sections['task'].strip()
+        best_prompt = candidates[0].replace(task_section, optimizer.best_prompt)
+        with open(args.out, 'a') as outf:
+            outf.write(f"BEST PROMPT for subject {subject}:\n{best_prompt}\n")
         per_subject_scores = task.evaluate_on_all_subjects(
             best_prompt,
             predictor,

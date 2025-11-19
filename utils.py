@@ -8,6 +8,7 @@ import requests
 import config
 import string
 import re
+import sys
 
 # returns 0 for A, 1 for B, etc, -1 for no match
 def clean_output(pred):
@@ -42,8 +43,8 @@ def parse_sectioned_prompt(s):
     return result
 
 
-def chatgpt(prompt, model="gpt-4o-mini", temperature=0.7, n=1, top_p=1, stop=None, max_tokens=2048, 
-                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=10):
+def chatgpt(prompt, model="gpt-4o-mini", temperature=1, n=1, top_p=1, stop=None, max_tokens=10000, 
+                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=60, log_path = None):
     messages = [{"role": "user", "content": prompt}]
     if "gpt-5" not in model:
         payload = {
@@ -63,6 +64,20 @@ def chatgpt(prompt, model="gpt-4o-mini", temperature=0.7, n=1, top_p=1, stop=Non
             "messages": messages,
             "model": model
         }
+
+    def log(msg: str):
+        ts = time.strftime("%Y-%m-%d %H:%M:%S")
+        line = f"[{ts}] [chatgpt] {msg}"
+        if log_path is not None:
+            try:
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(line + "\n")
+            except Exception:
+                # fall back to stderr if file logging fails
+                print(line, file=sys.stderr)
+        else:
+            print(line, file=sys.stderr)
+
     retries = 0
     while True:
         try:
@@ -75,17 +90,28 @@ def chatgpt(prompt, model="gpt-4o-mini", temperature=0.7, n=1, top_p=1, stop=Non
                 timeout=timeout
             )
             if r.status_code != 200:
+                log(f"Non-200 status code: {r.status_code}, response: {r.text}")
                 retries += 1
                 time.sleep(1)
             else:
                 break
-        except requests.exceptions.ReadTimeout:
+        except requests.exceptions.ReadTimeout as e:
+            log(f"Unexpected exception while calling OpenAI: {repr(e)}")
             time.sleep(1)
             retries += 1
         if retries > 5:
+            log("Exceeded maximum retries (5). Returning [''].")
             return [""]
-    r = r.json()
-    return [choice['message']['content'] for choice in r['choices']]
+    try:
+        r_json = r.json()
+    except ValueError as e:
+        log(f"Failed to parse JSON from response: {repr(e)}, raw text: {r.text}")
+        return [""]
+
+    if "choices" not in r_json:
+        log(f"Response JSON missing 'choices': {r_json}")
+        return [""]
+    return [choice['message']['content'] for choice in r_json['choices']]
 
 
 def instructGPT_logprobs(prompt, temperature=0.7):
