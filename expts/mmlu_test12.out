@@ -1,0 +1,123 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4o-mini", "gradient_model": "gpt-4o", "editing_model": "gpt-4o", "out": "expts/mmlu_test12.out", "logs": "expts/mmlu_log12.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 50, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 20, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.7142857142857143
+======== ROUND 2 =========
+acc: 0.6428571428571428
+======== ROUND 3 =========
+acc: 0.6964285714285714
+======== ROUND 4 =========
+acc: 0.6785714285714286
+======== ROUND 5 =========
+acc: 0.6607142857142857
+======== ROUND 6 =========
+acc: 0.6785714285714286
+======== ROUND 7 =========
+acc: 0.6785714285714286
+======== ROUND 8 =========
+acc: 0.6607142857142857
+======== ROUND 9 =========
+acc: 0.6964285714285714
+======== ROUND 10 =========
+acc: 0.6428571428571428
+======== ROUND 11 =========
+acc: 0.6607142857142857
+======== ROUND 12 =========
+acc: 0.625
+======== ROUND 13 =========
+acc: 0.625
+======== ROUND 14 =========
+acc: 0.6785714285714286
+======== ROUND 15 =========
+acc: 0.6785714285714286
+======== ROUND 16 =========
+acc: 0.7321428571428572
+======== ROUND 17 =========
+acc: 0.75
+======== ROUND 18 =========
+acc: 0.6964285714285714
+======== ROUND 19 =========
+acc: 0.6428571428571428
+======== ROUND 20 =========
+acc: 0.6964285714285714
+======== ROUND 21 =========
+acc: 0.7321428571428572
+======== ROUND 22 =========
+acc: 0.7142857142857143
+======== ROUND 23 =========
+acc: 0.6785714285714286
+======== ROUND 24 =========
+acc: 0.6607142857142857
+======== ROUND 25 =========
+acc: 0.6428571428571428
+======== ROUND 26 =========
+acc: 0.7142857142857143
+======== ROUND 27 =========
+acc: 0.6964285714285714
+======== ROUND 28 =========
+acc: 0.7321428571428572
+======== ROUND 29 =========
+acc: 0.6964285714285714
+======== ROUND 30 =========
+acc: 0.7142857142857143
+======== ROUND 31 =========
+acc: 0.6785714285714286
+======== ROUND 32 =========
+acc: 0.6785714285714286
+======== ROUND 33 =========
+acc: 0.625
+======== ROUND 34 =========
+acc: 0.6964285714285714
+======== ROUND 35 =========
+acc: 0.6909090909090909
+======== ROUND 36 =========
+acc: 0.7142857142857143
+======== ROUND 37 =========
+acc: 0.6071428571428572
+BEST PROMPT for subject college_chemistry:
+# Task
+1. **Initial Analysis**
+   - ALWAYS read the question and all answer choices carefully; VERIFY understanding by summarizing the problem with textbook definitions.
+   - IF a term is unfamiliar, THEN research its definition and context; VERIFY with examples from reliable sources.
+
+2. **Formula Application and Verification**
+   - IF applying a formula, THEN ensure it is directly relevant to the problem context; VERIFY with textbook examples.
+   - ALWAYS derive the formula from first principles; VERIFY with a limiting-case check.
+   - NEVER use a formula without understanding its derivation; INSTEAD, ensure it matches the problem's conditions; VERIFY with a peer-reviewed source.
+
+3. **Unit Conversion and Consistency**
+   - IF converting units, THEN use a reliable conversion factor; VERIFY units match the problem's requirements.
+   - ALWAYS perform dimensional analysis before and after conversion; VERIFY with a unit consistency check.
+   - NEVER assume unit conversions are correct; INSTEAD, double-check with a conversion table; VERIFY with a peer.
+
+4. **Frequency and Chemical Shift Calculations**
+   - IF calculating chemical shifts from frequency differences, THEN use the formula \(\text{Chemical Shift} = \frac{\Delta \nu}{\nu_{\text{spectrometer}}} \times 10^6\); VERIFY with unit consistency and known examples.
+   - ALWAYS cross-check calculated chemical shifts with textbook examples; VERIFY with a peer-reviewed source.
+
+5. **Empirical Data and Closest Match Selection**
+   - IF empirical data is available, THEN use it to guide calculations; VERIFY with literature values.
+   - IF no exact match is found, THEN choose the closest match; VERIFY by comparing calculated values with options.
+   - NEVER ignore empirical data or the closest match; INSTEAD, justify the selection based on calculations; VERIFY with a checklist.
+
+6. **Final Verification**
+   - IF reaching a conclusion, THEN re-evaluate all calculations; VERIFY with a different approach.
+   - ALWAYS cross-check the final answer with the problem statement; VERIFY with known data.
+   - NEVER finalize an answer without re-evaluation; INSTEAD, ensure all checks are complete; VERIFY with a checklist.
+
+7. **Fallback Protocol**
+   - IF results don’t match any option, THEN re-check units, signs, and assumptions; VERIFY each step.
+   - ALWAYS try an alternative method if stuck; VERIFY with a different approach.
+   - NEVER choose an option without re-evaluation; INSTEAD, ensure all checks are complete; VERIFY with a checklist.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.5088

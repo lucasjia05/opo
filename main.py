@@ -144,8 +144,8 @@ def get_args():
     parser.add_argument('--data_dir', default='data/mmlu')
     parser.add_argument('--prompts', default='prompts/mmlu.md')
     parser.add_argument('--task_model', default='gpt-4o-mini')
-    parser.add_argument('--gradient_model', default='gpt-4o')
-    parser.add_argument('--editing_model', default='gpt-4o')
+    parser.add_argument('--gradient_model', default='gpt-5.2')
+    parser.add_argument('--editing_model', default='gpt-5.2')
     # parser.add_argument('--config', default='default.json')
     parser.add_argument('--out', default='expts/mmlu_test0.out')
     parser.add_argument('--logs', default='expts/mmlu_log0.out')
@@ -157,7 +157,7 @@ def get_args():
 
     parser.add_argument('--minibatch_size', default=64, type=int)
     parser.add_argument('--n_gradients', default=1, type=int)
-    parser.add_argument('--errors_per_gradient', default=4, type=int)
+    parser.add_argument('--errors_per_gradient', default=8, type=int)
     parser.add_argument('--gradients_per_error', default=1, type=int)
 
     parser.add_argument('--steps_per_gradient', default=1, type=int)

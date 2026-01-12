@@ -44,7 +44,7 @@ class MMLUPredictor(GPT4Predictor):
         )
         #print(prompt)
         response = utils.chatgpt(
-            prompt, max_tokens=2048, n=1, timeout=30, 
+            prompt, max_tokens=2048, n=1, timeout=60, 
             temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
         #print("response: ", response)
         return response

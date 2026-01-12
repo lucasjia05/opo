@@ -1,0 +1,221 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4o-mini", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test13.out", "logs": "expts/mmlu_log13.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 50, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 20, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.6964285714285714
+======== ROUND 2 =========
+acc: 0.6785714285714286
+======== ROUND 3 =========
+acc: 0.6964285714285714
+======== ROUND 4 =========
+acc: 0.6964285714285714
+======== ROUND 5 =========
+acc: 0.625
+======== ROUND 6 =========
+acc: 0.6071428571428572
+======== ROUND 7 =========
+acc: 0.7142857142857143
+======== ROUND 8 =========
+acc: 0.6428571428571428
+======== ROUND 9 =========
+acc: 0.6785714285714286
+======== ROUND 10 =========
+acc: 0.6785714285714286
+======== ROUND 11 =========
+acc: 0.6428571428571428
+======== ROUND 12 =========
+acc: 0.6964285714285714
+======== ROUND 13 =========
+acc: 0.6428571428571428
+======== ROUND 14 =========
+acc: 0.6964285714285714
+======== ROUND 15 =========
+acc: 0.6785714285714286
+======== ROUND 16 =========
+acc: 0.6428571428571428
+======== ROUND 17 =========
+acc: 0.6607142857142857
+======== ROUND 18 =========
+acc: 0.6607142857142857
+======== ROUND 19 =========
+acc: 0.6607142857142857
+======== ROUND 20 =========
+acc: 0.7142857142857143
+======== ROUND 21 =========
+acc: 0.6428571428571428
+======== ROUND 22 =========
+acc: 0.5714285714285714
+======== ROUND 23 =========
+acc: 0.6607142857142857
+======== ROUND 24 =========
+acc: 0.6964285714285714
+======== ROUND 25 =========
+acc: 0.6964285714285714
+======== ROUND 26 =========
+acc: 0.6607142857142857
+======== ROUND 27 =========
+acc: 0.7142857142857143
+BEST PROMPT for subject college_chemistry:
+# Task
+-You are solving a college-level chemistry multiple-choice question. Use ONLY the provided options and select EXACTLY ONE. Do not invent new options, data, constants, or formulas beyond widely standard physical constants implicitly used in spectroscopy/thermo (h, kB, c, μB, NA, R) and only when required.
+-
+-========================================
+-0) HARD OUTPUT CONSTRAINT
+-========================================
+-ALWAYS choose exactly one of the listed options; VERIFY your final selection is a single option label and corresponds to one provided choice.
+-
+-========================================
+-1) TASK LOCK (do this first)
+-========================================
+-ALWAYS identify:
+-(i) what is asked (quantity + conditions + “direction words” like largest/smallest/cannot/most accurate),
+-(ii) what is given (values + units + context/technique),
+-(iii) question type: numeric / conceptual / ranking / “law-form-from-units”.
+-VERIFY the target statement preserves every qualifier (e.g., “most accurate”, “sometimes longer”, “separated by”, “between each line”, “cannot”).
+-
+-========================================
+-2) EQUATION SELECTION: DEFINITION-FIRST + UNIT AUDIT (HARD GATE)
+-========================================
+-ALWAYS pick the most direct governing relation using definitions/canonical relations first; VERIFY with a limiting/anchor check appropriate to the domain.
+-
+-ALWAYS perform an “equation-unit audit” BEFORE plugging numbers:
+--Write the equation and annotate units on each symbol.
+--Reduce both sides to base units.
+-IF the unit audit fails THEN stop and re-derive; do not compute further until it passes.
+-VERIFY each conversion is explicit and correct (examples: 1 T = 10^3 mT; 1 G = 10^-4 T; 1 mT = 10 G; 1 GHz = 10^9 Hz; 1 MHz = 10^6 Hz).
+-
+-NEVER proceed with an expression that mixes ω (rad/s) and ν (Hz) without conversion; INSTEAD enforce:
+-ω0 = γ(rad·s^-1·T^-1)·B
+-ν0 = (γ/2π)·B if γ is in rad·s^-1·T^-1
+-VERIFY dimensional closure (rad is dimensionless, but the 2π accounting must match whether γ is rad/s/T or Hz/T).
+-
+-========================================
+-3) DOMAIN-SPECIFIC MANDATORY ANCHORS (use as computations, not just “sanity”)
+-========================================
+-3.1 NMR (when 1H frequency/field/ppm appear)
+-ALWAYS use: ν0(1H) ≈ 42.577 MHz·T^-1 × B0; VERIFY 9.39 T ≈ 400 MHz and 12.0 T ≈ 511 MHz.
+-ALWAYS use chemical shift conversion: Δν(Hz) = δ(ppm) × ν0(MHz); VERIFY on 400 MHz, 1 ppm = 400 Hz.
+-IF the stem gives a frequency difference “A exceeds B by Δν” THEN set νA − νB = +Δν; VERIFY sign consistency with “exceeds/larger/downfield”.
+-
+-3.2 EPR / electron Zeeman (mandatory whenever EPR, g, μB, GHz, mT/G appear)
+-ALWAYS use μB/h = 13.99624555 GHz·T^-1 (≈13.996).
+-ALWAYS compute the center field via:
+-B_center(T) = ν(GHz) / [g × 13.996]
+-or equivalently g = ν(GHz) / [13.996 × B(T)].
+-VERIFY X-band: ν≈9.5 GHz and g≈2 ⇒ B≈0.34 T (≈340 mT, ≈3400 G).
+-
+-ALWAYS compute g from the centroid field for symmetric multiplets:
+-B_center = average(all listed line fields).
+-VERIFY B_center is midway between min and max for symmetric patterns.
+-
+-========================================
+-4) HYPERFINE SEMANTICS (EPR) — DO NOT GUESS WHAT Δ MEANS
+-========================================
+-IF the stem says “lines separated by Δν (or ΔB) between each line” THEN interpret Δ as ADJACENT-LINE SPACING; VERIFY adjacent differences equal Δ and total span equals (N−1)Δ.
+-
+-IF asked for “expected resonant field positions of both lines” for a pair “separated by Δ” THEN:
+-1) compute the center field B0 from ν and g,
+-2) convert the separation to field units if needed,
+-3) set positions = B0 ± (ΔB/2).
+-VERIFY the separation between the two positions is exactly ΔB and their average equals B0.
+-
+-ALWAYS convert hyperfine frequency spacing to field spacing using:
+-ΔB(T) = Δν(Hz) / [g × (μB/h)(Hz·T^-1)].
+-Use (μB/h) = 13.996×10^9 Hz·T^-1 when working in Hz.
+-VERIFY magnitude: hundreds of MHz typically correspond to mT–tens of mT at X-band, not microtesla.
+-
+-========================================
+-5) RELAXATION + SPIN-TRAPPING CONCEPTUAL PRIORS (HARD RULES)
+-========================================
+-5.1 Spin trapping “why used” questions
+-IF the question asks why spin trapping is used to detect radical intermediates THEN prefer the mechanism:
+-“radicals are too short-lived and/or too low in steady-state concentration for direct EPR; trapping forms a longer-lived radical adduct that accumulates to detectable levels.”
+-VERIFY the chosen option explicitly mentions lifetime/steady-state concentration/detectability/accumulation of adducts; reject options that only claim “more structural information” or “easier quantification” unless the stem specifically asks those.
+-
+-5.2 T1 vs T2
+-ALWAYS use:
+-T1 (longitudinal) requires fluctuations near ω0 (Larmor frequency).
+-T2 (transverse) includes ω0 contributions AND very low-frequency/near-0 components (slow motion, static inhomogeneity) that dephase spins without energy exchange.
+-IF asked why T1 can be longer than T2 THEN select the option that states T2 is sensitive to very low-frequency/near-0 processes beyond T1; VERIFY direction: extra low-frequency sensitivity shortens T2 relative to T1.
+-
+-========================================
+-6) MONOTONICITY + PHYSICS SANITY CHECKS (HARD GATES FOR NUMERIC)
+-========================================
+-ALWAYS check these before committing to an option:
+-(i) Polarization of spins at fixed T must increase with B (in the small ΔE/kT regime).
+-(ii) Zeeman splitting increases with B.
+-(iii) NMR frequency increases with B0.
+-(iv) For fixed ν, larger g implies smaller B (B ∝ 1/g).
+-IF any monotonicity check fails THEN re-derive equation and constants; VERIFY the corrected relation satisfies monotonicity and the domain anchors.
+-
+-For spin-1/2 thermal polarization in the usual high-T limit:
+-IF ΔE ≪ kT THEN P ≈ ΔE/(2kT) with ΔE = hν = ħγB; VERIFY P ≪ 1 and scales linearly with B/T.
+-
+-========================================
+-7) LAW-FORM-FROM-UNITS RULE (CONVENTION RESOLUTION)
+-========================================
+-ALWAYS infer which algebraic form a constant implies from its units when multiple conventions exist.
+-
+-Henry’s law example rule:
+-IF K_H is given in atm·M^-1 THEN use P = K_H·C and therefore C = P/K_H; VERIFY units: atm = (atm·M^-1)·M.
+-IF K_H is given in M·atm^-1 THEN use C = K_H·P; VERIFY units: M = (M·atm^-1)·atm.
+-
+-NEVER choose an option before checking whether the constant’s units imply inversion; INSTEAD test the unit-implied form first; VERIFY the computed value is physically plausible (e.g., dissolved gas concentrations typically ≤ a few M in water).
+-
+-========================================
+-8) OPTION SELECTION RULES (NUMERIC VS CONCEPTUAL)
+-========================================
+-8.1 Numeric questions
+-ALWAYS compute a single x_calc with units and sign.
+-ALWAYS reject any option with incompatible units/sign/direction words.
+-ALWAYS compare x_calc to the remaining numeric options using relative error:
+-rel_err_i = |x_calc − x_i| / |x_calc|.
+-Choose the MIN rel_err option only if:
+-(a) unit/direction gates pass, and
+-(b) anchor/monotonicity checks pass, and
+-(c) the match is within a reasonable tolerance implied by the problem (default 2–5% unless the options are widely spaced).
+-VERIFY no other option has smaller rel_err among valid-unit candidates.
+-
+-8.2 Conceptual “most accurate/best explanation”
+-ALWAYS eliminate options that do not address the asked mechanism/limitation.
+-Use this tie-break order:
+-(i) directly states the named technique’s primary mechanism/limitation relevant to the stem,
+-(ii) includes the correct necessary condition (frequency/lifetime/steady-state concentration, ω0 vs 0-frequency, etc.),
+-(iii) is not merely a generic true statement.
+-VERIFY the chosen option contains a specific causal link (“because… therefore…”) aligned to the stem.
+-
+-========================================
+-9) FALLBACK PROTOCOL (mandatory when mismatch/ambiguity occurs)
+-========================================
+-Trigger Fallback if ANY occurs:
+--Unit audit fails,
+--Anchor checks fail (1H MHz↔T; X-band field scale),
+--Monotonicity fails,
+--No option matches within tolerance after valid-unit filtering,
+--Two conceptual options remain tied after the tie-break rules.
+-
+-Fallback steps (in order; stop once exactly one option is uniquely supported):
+-A) Re-do unit conversions explicitly (write every power of ten); VERIFY dimensional closure at each step.
+-B) Re-audit 2π usage (γ_rad vs γ_Hz; ω vs ν); VERIFY anchors now hold.
+-C) Re-interpret “separated by Δ” vs “between each line” and enforce centroid ±Δ/2 where applicable; VERIFY spacing and centroid conditions.
+-D) Re-derive using the mandatory anchor pathway:
+--EPR: g = ν(GHz)/[13.996·B(T)] with B as centroid.
+--NMR: ν0(1H)=42.577·B0(MHz).
+-VERIFY the derived magnitude matches known instrument scales.
+-E) Convention test (unit-implied inversion):
+--Henry’s constant form from units; hyperfine frequency↔field via μB/h; ppm↔Hz scaling.
+-VERIFY only one standard convention change yields an option-consistent result.
+-F) If still no match: choose the option that becomes uniquely correct under exactly ONE standard correction from steps B–E; VERIFY no other single correction selects a different option. If not unique, select the option most consistent with anchors and monotonicity (do not use “closest” unless anchors/units force it).
+-
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.4912

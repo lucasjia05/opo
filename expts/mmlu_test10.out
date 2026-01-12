@@ -1,0 +1,95 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4o-mini", "gradient_model": "gpt-4o", "editing_model": "gpt-4o", "out": "expts/mmlu_test10.out", "logs": "expts/mmlu_log10.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 30, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 15, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.6785714285714286
+======== ROUND 2 =========
+acc: 0.6785714285714286
+======== ROUND 3 =========
+acc: 0.6071428571428572
+======== ROUND 4 =========
+acc: 0.6964285714285714
+======== ROUND 5 =========
+acc: 0.6428571428571428
+======== ROUND 6 =========
+acc: 0.6785714285714286
+======== ROUND 7 =========
+acc: 0.625
+======== ROUND 8 =========
+acc: 0.625
+======== ROUND 9 =========
+acc: 0.6071428571428572
+======== ROUND 10 =========
+acc: 0.6428571428571428
+======== ROUND 11 =========
+acc: 0.625
+======== ROUND 12 =========
+acc: 0.6785714285714286
+======== ROUND 13 =========
+acc: 0.7321428571428572
+======== ROUND 14 =========
+acc: 0.6785714285714286
+======== ROUND 15 =========
+acc: 0.6785714285714286
+======== ROUND 16 =========
+acc: 0.6964285714285714
+======== ROUND 17 =========
+acc: 0.6607142857142857
+======== ROUND 18 =========
+acc: 0.6607142857142857
+======== ROUND 19 =========
+acc: 0.6071428571428572
+======== ROUND 20 =========
+acc: 0.6964285714285714
+======== ROUND 21 =========
+acc: 0.6428571428571428
+======== ROUND 22 =========
+acc: 0.6428571428571428
+======== ROUND 23 =========
+acc: 0.625
+======== ROUND 24 =========
+acc: 0.6428571428571428
+======== ROUND 25 =========
+acc: 0.6071428571428572
+======== ROUND 26 =========
+acc: 0.6607142857142857
+======== ROUND 27 =========
+acc: 0.6785714285714286
+======== ROUND 28 =========
+acc: 0.6964285714285714
+BEST PROMPT for subject college_chemistry:
+# Task
+1. **Comprehend the Question:**
+   - Thoroughly read the question to understand all components and identify the core chemistry concepts involved.
+
+2. **Scaling/Proportionality Derivation:**
+   - IF the question involves scaling or proportionality, THEN derive relationships using dimensional analysis and verify against known principles.
+
+3. **Unit/Dimension Check:**
+   - Always ensure unit consistency before and after calculations; convert units using standard factors when necessary.
+
+4. **Multi-part Question Rule:**
+   - Always address each part of a multi-part question separately and ensure all parts are answered before selecting an option.
+
+5. **Option Selection Rule:**
+   - Never select an option based on proximity or "closest match."
+   - IF calculations do not match any option, THEN re-evaluate each step and verify the correctness of all assumptions and calculations.
+
+6. **Formula-Validation Rule:**
+   - IF a formula is needed, THEN ensure it is directly applicable to the problem's context and validated by the data provided.
+
+7. **Final Decision:**
+   - After verifying all calculations and ensuring all parts of the question are addressed, select the option that matches your verified answer.
+   - IF no option matches, THEN review the problem-solving process for potential errors.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.4912

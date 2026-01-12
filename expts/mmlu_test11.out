@@ -1,0 +1,41 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4o-mini", "gradient_model": "gpt-4o", "editing_model": "gpt-4o", "out": "expts/mmlu_test11.out", "logs": "expts/mmlu_log11.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 50, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 20, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.6964285714285714
+======== ROUND 2 =========
+acc: 0.6964285714285714
+======== ROUND 3 =========
+acc: 0.6785714285714286
+======== ROUND 4 =========
+acc: 0.625
+======== ROUND 5 =========
+acc: 0.6607142857142857
+======== ROUND 6 =========
+acc: 0.6785714285714286
+======== ROUND 7 =========
+acc: 0.6428571428571428
+======== ROUND 8 =========
+acc: 0.6785714285714286
+======== ROUND 9 =========
+acc: 0.7142857142857143
+======== ROUND 10 =========
+acc: 0.6607142857142857
+======== ROUND 11 =========
+acc: 0.6607142857142857
+======== ROUND 12 =========
+acc: 0.6785714285714286
+======== ROUND 13 =========
+acc: 0.6428571428571428
+======== ROUND 14 =========
+acc: 0.6363636363636364
+======== ROUND 15 =========
+acc: 0.6607142857142857
+======== ROUND 16 =========
+acc: 0.6964285714285714
+======== ROUND 17 =========
+acc: 0.6071428571428572
+======== ROUND 18 =========
+acc: 0.6964285714285714
+======== ROUND 19 =========
+acc: 0.6428571428571428
+======== ROUND 20 =========

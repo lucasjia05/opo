@@ -71,7 +71,7 @@ class ProTeGi(PromptOptimizer):
         Wrap each reason with <START> and <END>
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
-        res = utils.chatgpt(gradient_prompt, n=n)
+        res = utils.chatgpt(gradient_prompt, n=n, temperature = 1)
         feedbacks = []
         new_prompts = []
         for r in res:    
@@ -97,7 +97,7 @@ class ProTeGi(PromptOptimizer):
         The {steps_per_gradient} new prompts are:
         """
         transformation_prompt = '\n'.join([line.lstrip() for line in transformation_prompt.split('\n')])
-        res = utils.chatgpt(transformation_prompt, n=n)
+        res = utils.chatgpt(transformation_prompt, n=n, temperature=1)
         new_prompts = []
         for r in res:   
             new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
@@ -268,7 +268,7 @@ class OnlineProTeGi(PromptOptimizer):
         acc = self.metrics["acc"][-1]
         overall_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
         gradient_prompt = f"""
-        I'm trying to write a multiple-choice question answering prompt across different subject areas.
+        I'm trying to write a multiple-choice question answering prompt for college chemistry.
 
         Here is the best performing prompt so far:
         "{self.best_prompt}"
@@ -285,20 +285,27 @@ class OnlineProTeGi(PromptOptimizer):
         But this prompt gets the following examples wrong:
         {error_string}
 
-        Carefully analyze these mistakes step by step.
+        You will diagnose why the CURRENT prompt fails, using evidence from the model’s responses.
 
-        For each example:
-        1. Restate in your own words what the question is asking.
-        2. Identify which option is correct and briefly explain why.
-        3. Describe why the model’s chosen answer is wrong or incomplete.
-        4. Explain how the wording or structure of the CURRENT PROMPT could have encouraged this mistake
+        IMPORTANT OUTPUT GOAL:
+        Your final output should be a small set of missing/ambiguous DECISION RULES the CURRENT prompt fails to enforce.
+        Do NOT write a new prompt. Do NOT rewrite instructions. Only diagnose what is missing/unclear.
 
-        After you have thought through all of the examples in detail, synthesize your analysis into a single, concise description of the main weakness or set of weaknesses in the current prompt.
-        Focus specifically on how the prompt is guiding the model's reasoning and behavior, rather than generic statements.
+        For each example, do ALL of the following:
+        1. Restate the question in your own words, including what quantity/concept must be determined and what constraints/assumptions are given.
+        2. Identify the correct option (letter) and give a justification based on the key principle/relationship.
+        3. Locate the model’s failure point. Quote or precisely paraphrase the first step/claim where the model’s reasoning diverges from the correct approach. Name the type of error.
+        4. Explain why the chosen answer is wrong or incomplete. State what the model concluded vs what should be concluded. State the minimal correction needed (e.g., “use τc ∝ Mr rather than Mr³”, “convert Hz→cm⁻¹ using ν/c with correct units”, etc.).
+        5. Prompt-to-error link (be specific). Cite the exact phrase(s) in the CURRENT PROMPT that likely encouraged the failure mode. Explain the causal chain as: Prompt phrase → encouraged behavior → observed failure. Avoid generic statements like “not enough emphasis” unless you specify which check or decision rule is missing.
+
+        After analyzing all examples, synthesize the findings into a diagnosis of the CURRENT PROMPT’s weaknesses:
+        Provide 6-7 core behavioral/policy failures (e.g., “allows choosing the closest option instead of re-checking when results don’t match”).
+        For each weakness, reference at least two examples that demonstrate it.
+        Phrase weaknesses as missing or ambiguous decision rules that the prompt currently fails to enforce.
+        Do NOT propose a new prompt or give rewritten instructions—only diagnose what is missing/unclear.
 
         Wrap ONLY this final synthesized description with <START> and <END>.
         Do not include <START> or <END> anywhere else in your response.
-        Do NOT propose a new prompt here; just diagnose the issues with the existing one.
         """
         gradient_prompt = '\n'.join([line.lstrip() for line in gradient_prompt.split('\n')])
         res = utils.chatgpt(gradient_prompt, n=n, model=model)
@@ -318,7 +325,7 @@ class OnlineProTeGi(PromptOptimizer):
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1, model="gpt-4o"):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a multiple choice question answering prompt across different subject areas.
+        I'm trying to write a multiple choice question answering prompt for college chemistry.
         
         Here is the best performing prompt so far:
         "{self.best_prompt}"
@@ -335,20 +342,26 @@ class OnlineProTeGi(PromptOptimizer):
         From a previous analysis, the main problems with the current prompt can be summarized as:
         {feedback_str}
 
-        First, think step by step about how to improve this prompt:
-        - Analyze what behaviors the current prompt encourages in the model.
-        - Explain how those behaviors lead to the specific errors shown.
-        - Decide what instructions should be added, removed, or rephrased so that the model:
-        * reasons carefully but does not overcomplicate problems,
-        * uses domain knowledge appropriately,
-        * double-checks units, magnitudes, and simple numerical checks,
-        * and systematically compares the options before choosing an answer.
+        Task: Write a NEW instruction prompt that improves the CURRENT prompt by directly fixing the weaknesses above.
 
-        After your analysis, design a NEW instruction prompt that:
-        - Encourages clear, step-by-step chain-of-thought reasoning on each question.
-        - Helps the model judge when detailed calculations are necessary vs when simple reasoning or known facts are enough.
-        - Emphasizes selecting the single best answer from the given options (A, B, C, D).
-        - Is not the same as the best prompt so far:
+        Core requirement: The NEW prompt must be longer and more operational than the CURRENT prompt. It should contain enough concrete decision rules and verification steps that a solver model could reliably follow it on unseen college-chemistry MCQs. Avoid vague advice; prefer specific, testable rules.
+
+        Before writing the final prompt, produce a structured analysis (bullets) that:
+        1) Lists the top 4–6 failure modes.
+        2) For each failure mode, propose 1-2 concrete, atomic instruction rules that prevent it. Each rule must be written in one of these formats:
+        - "IF ... THEN ...; VERIFY ..."
+        - "ALWAYS ...; VERIFY ..."
+        - "NEVER ...; INSTEAD ...; VERIFY ..."
+        The VERIFY clause must be falsifiable (units match, sign check, limiting-case check, option consistency, etc.).
+        3) Decide what to remove or de-emphasize from the CURRENT prompt to reduce hallucinated formulas, unnecessary verbosity, or shallow “pattern matching”.
+
+
+        Then produce the NEW instruction prompt with these constraints:
+        - Must be clearly structured with bullets or numbered steps.
+        - Must explicitly include the decision rules identified in the analysis.
+        - Must include a Fallback Protocol: what to do when results don’t match any option (re-check units, signs, assumptions, algebra; try an alternative method; only then choose).
+        - Must not reuse sentences from the best-performing prompt.
+        - Do not specify the output format; that is handled elsewhere.
 
         At the very end of your response, output ONLY the final instruction prompt wrapped exactly as:
 

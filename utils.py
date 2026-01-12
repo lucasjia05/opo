@@ -43,8 +43,8 @@ def parse_sectioned_prompt(s):
     return result
 
 
-def chatgpt(prompt, model="gpt-4o-mini", temperature=1, n=1, top_p=1, stop=None, max_tokens=10000, 
-                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=60, log_path = None):
+def chatgpt(prompt, model="gpt-4o-mini", temperature=0, n=1, top_p=1, stop=None, max_tokens=10000, 
+                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=600, log_path = None):
     messages = [{"role": "user", "content": prompt}]
     if "gpt-5" not in model:
         payload = {
