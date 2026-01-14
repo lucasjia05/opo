@@ -218,7 +218,7 @@ if __name__ == '__main__':
     random.seed(SEED)
     random.shuffle(subjects)
     all_results = {}    # accuracies of all subjects as we go along
-
+    
     # loop for each subject
     for i, subject in enumerate(subjects, start=1):
         print(f"==========STARTING SUBJECT {i}: {subject}==========")

@@ -44,7 +44,7 @@ def parse_sectioned_prompt(s):
 
 
 def chatgpt(prompt, model="gpt-4o-mini", temperature=0, n=1, top_p=1, stop=None, max_tokens=10000, 
-                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=600, log_path = None):
+                  presence_penalty=0, frequency_penalty=0, logit_bias={}, timeout=2048, log_path = None):
     messages = [{"role": "user", "content": prompt}]
     if "gpt-5" not in model:
         payload = {
@@ -95,10 +95,12 @@ def chatgpt(prompt, model="gpt-4o-mini", temperature=0, n=1, top_p=1, stop=None,
                 time.sleep(1)
             else:
                 break
-        except requests.exceptions.ReadTimeout as e:
-            log(f"Unexpected exception while calling OpenAI: {repr(e)}")
-            time.sleep(1)
+        except (requests.exceptions.ReadTimeout,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ChunkedEncodingError) as e:
+            log(f"Request exception: {repr(e)}")
             retries += 1
+            time.sleep(2 ** retries)
         if retries > 5:
             log("Exceeded maximum retries (5). Returning [''].")
             return [""]

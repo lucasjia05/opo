@@ -513,7 +513,7 @@ class OnlineProTeGi(PromptOptimizer):
                 gradients = self.get_gradients(prompt, task_section, task, gpt4, texts, choices, labels, preds, responses, model=self.opt["gradient_model"])
                 # with open(self.opt['out'], 'a') as outf:
                 #     outf.write(f"gradients: {gradients}\n")
-                for feedback, error_string in tqdm(gradients, desc='applying gradients'):
+                for feedback, error_string in tqdm(gradients[: self.opt["n_gradients"]], desc='applying gradients'):
                     new_task_sections += self.apply_gradient(
                         task_section, error_string, feedback, self.opt['steps_per_gradient'], model=self.opt["editing_model"])
                     

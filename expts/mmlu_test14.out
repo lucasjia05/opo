@@ -1,0 +1,13 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test14.out", "logs": "expts/mmlu_log14.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 50, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 20, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.6428571428571428
+======== ROUND 2 =========
+acc: 0.7321428571428572
+======== ROUND 3 =========
+acc: 0.75
+======== ROUND 4 =========
+acc: 0.75
+======== ROUND 5 =========
+acc: 0.6785714285714286
+======== ROUND 6 =========

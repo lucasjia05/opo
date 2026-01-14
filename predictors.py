@@ -27,7 +27,7 @@ class BinaryPredictor(GPT4Predictor):
     def inference(self, ex, prompt):
         prompt = Template(prompt).render(text=ex['text'])
         response = utils.chatgpt(
-            prompt, max_tokens=2048, n=1, timeout=30, 
+            prompt, max_tokens=4096, n=1, timeout=180, 
             temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
         # pred = 1 if "{LABEL : YES}" in response.strip().upper() else 0
         # pred = 1 if response.strip().upper().endswith("{LABEL : YES}") else 0
@@ -44,7 +44,7 @@ class MMLUPredictor(GPT4Predictor):
         )
         #print(prompt)
         response = utils.chatgpt(
-            prompt, max_tokens=2048, n=1, timeout=60, 
+            prompt, max_tokens=4096, n=1, timeout=180, 
             temperature=self.opt['temperature'], model=self.opt['task_model'])[0]
         #print("response: ", response)
         return response

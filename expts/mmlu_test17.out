@@ -1,0 +1,181 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test17.out", "logs": "expts/mmlu_logs17.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 1, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 12, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+BEST PROMPT for subject college_chemistry:
+# Task
+You are solving a college-chemistry multiple-choice question. Select exactly one option. Follow the procedure in order. Any VERIFY failure requires you to return to the earliest step that could have caused it and redo from there.
+
+        0) Safety rails (global rules)
+        - NEVER “fit” by changing constants or choosing a formula because it hits an option.
+        - ALWAYS prefer a definition/model that is (i) explicitly cued by the stem OR (ii) uniquely implied by the option structure AND consistent with anchors.
+        - ALWAYS keep a short audit trail: (a) what observable is being computed/assessed, (b) what equation/definition is used, (c) which cue justified it.
+
+        1) Build the problem record (minimal but complete)
+        1.1 Target sentence
+        - Write: “Find/choose ___ about ___ given ___ under ___.”
+        - Record every qualifier that can change interpretation: phase/solvent, temperature, “rigid/matrix/solution,” “fast exchange,” “resolved/no overlap,” isotope labels, reference compound, “best explains/most accurate,” “can/cannot be used,” NOT/EXCEPT/LEAST, ordering requests, “separation between lines,” “outermost lines,” etc.
+        - Record all numbers with units from stem AND from every option.
+
+        1.2 Option typing
+        - Label the option set type(s): numeric value, paired numeric values, integer counts, identity/species/tool, mechanism/explanation sentence(s), ordered list, mixed.
+        - VERIFY: every number/unit present anywhere is recorded; at least one potential trap is flagged (factor-of-2/π/10, reciprocal, sign, “lines vs intervals,” “adjacent spacing vs total spread,” “center vs endpoints,” “sample vs reference”).
+
+        2) Task tags and required modules
+        - Tag all that apply: CALC, CONVERT, COUNT, IDENTIFY, EXPLAIN, USE, INVERT, ORDER.
+        - Trigger modules:
+        - EPR/NMR/Spectroscopy module if the stem mentions g, hyperfine, coupling, splitting, field positions, chemical shift, ppm, band/frequency, polarization/populations.
+        - Thermo/equilibrium module if K, ΔG/ΔH/ΔS, pH/pKa, redox potentials, rate laws appear.
+        - VERIFY: at least one tag is justified by option type (numbers→CALC/CONVERT; integers→COUNT; species→IDENTIFY/USE; “best explains”→EXPLAIN; NOT/EXCEPT/CANNOT→INVERT).
+
+        3) Cue → operation binding (no unused qualifiers)
+        - For each qualifier/cue from Step 1, write exactly one forced operational effect (equation choice, approximation regime, sign/reference convention, symmetry/equivalence decision, feasibility constraint, or what “the observable” means).
+        - VERIFY: each cue is cited later by step number where it changes a decision. If any cue has no downstream effect, re-parse the stem and redefine the actual ask.
+
+        4) Observable-definition lock (mandatory for overloaded measurement language)
+        Trigger if the stem includes any of: splitting/separation/coupling/A, “field positions,” g value, chemical shift/offset/ppm, polarization/occupancy, “number of lines,” band label/frequency.
+
+        4.1 Enumerate competing definitions (2–4 only)
+        - List plausible operational meanings that would change the answer by a testable factor/sign:
+        - adjacent spacing vs total spread
+        - line fields B(mI) vs center field B0
+        - Hz vs rad/s (2π)
+        - lines vs intervals (lines−1)
+        - ratio Nα/Nβ vs polarization (Nα−Nβ)/(Nα+Nβ)
+        - VERIFY: each candidate would predict a different option by a recognizable factor/sign or magnitude shift.
+
+        4.2 Option-structure discriminator (forced)
+        - Scan options for systematic ratios: ≈2, 3, 1/2, 2π, π, 10, 100, or counts like n+1 vs 2nI+1 vs products.
+        - IF such a pattern exists, THEN perform a “definition/convention sweep”: test the smallest set of candidate definitions that differ by exactly those factors.
+        - VERIFY: exactly one definition both (i) matches at least one option scale/pattern and (ii) does not contradict an explicit cue.
+
+        5) Hard anchors + trend gates (anchors are gates, not commentary)
+        5.1 Choose 1–2 anchors relevant to the triggered module(s)
+        Examples (use only what is relevant):
+        - EPR: for g≈2, B0(T) ≈ ν(GHz)/28; thus X-band 9.5 GHz → B0≈0.34 T ≈ 3400 G.
+        - NMR: 1 ppm corresponds to ν0/10^6 in Hz (400 MHz → 1 ppm = 400 Hz).
+        - Wavenumber: 1 cm⁻1 ≈ 29.98 GHz.
+        - High-T spin-1/2 polarization scales ~B/T and is tiny at room T.
+        - Ionic lattice energy increases with higher charge product and smaller radii.
+        - Equilibrium constants must be dimensionless; pH trends must be monotonic with [H+], etc.
+
+        5.2 Anchor-violation rule (strict)
+        - IF your current model/definition violates a tight anchor (order-of-magnitude wrong or impossible trend), THEN you must treat the model/definition as wrong and return to Step 4 (definition lock) or Step 6/7 (model selection) as appropriate.
+        - VERIFY: after revising, (i) the anchor is satisfied and (ii) you can state the single changed assumption.
+
+        5.3 Cross-condition trend rule (mandatory when multiple conditions are given)
+        - IF the question gives the same observable under two fields/temperatures/frequencies/pressures, THEN enforce the expected dependence across conditions (e.g., polarization increases with B at fixed T; Zeeman splitting ∝ B; chemical shift in ppm independent of ν0 but Hz offset ∝ ν0).
+        - VERIFY: the selected option satisfies the dependence across all stated conditions; reject any option violating monotonicity or scaling.
+
+        6) Spectroscopy module (apply when triggered)
+        6.1 EPR g from field positions (mandatory if line fields are given)
+        - ALWAYS compute the center field B0 from the hyperfine pattern (midpoint of outermost lines if symmetric; otherwise mean of all lines if symmetry is not perfect).
+        - Compute g using g = hν/(μB B0) with ν in Hz and B0 in Tesla.
+        - VERIFY: (i) the line set is symmetric about your B0 within rounding, and (ii) the resulting g is consistent with the EPR anchor unless the stem signals an unusual case.
+
+        6.2 Hyperfine: adjacent spacing vs total spread sweep (mandatory when I is implied by “number of lines”)
+        - If there are 2I+1 lines from one nucleus, then outermost spread = 2I × (adjacent spacing).
+        - ALWAYS test whether the problem wants adjacent spacing (A) or total spread by checking option factors (e.g., factor 3 for I=3/2).
+        - VERIFY: your chosen meaning makes at least two options inconsistent by a clear factor (e.g., 3×, 1/3×).
+
+        6.3 Counting EPR lines (mandatory if asked “number of lines”)
+        - For each set of equivalent nuclei: multiplicity = 2nI + 1 (for I=1/2, this is n+1).
+        - For multiple resolved, non-equivalent sets: multiply multiplicities.
+        - VERIFY: toggling a stated cue (resolved↔unresolved; equivalent↔non-equivalent) changes the count in the correct direction.
+
+        6.4 Cue–option conflict tie-break for line counting (prevents deadlock)
+        - IF the full resolved multiplicative count is not in the options, THEN identify the smallest course-level inclusion set that is signaled by the options (e.g., “ignore low-abundance/label coupling,” “count only the dominant set,” “treat one coupling as not observed”) and recompute.
+        - NEVER do this silently: state which coupling(s) you are excluding and why the option set signals it.
+        - VERIFY: the revised count matches an option AND does not directly contradict an explicit cue (if a cue seems contradictory, you must explain why it is non-decisive rather than false, e.g., “no overlap applies to included couplings”).
+
+        6.5 Frequency/wavenumber/field conversions (mandatory when converting)
+        - Use defining relations (not memory shortcuts) and then check with an anchor:
+        - ΔE = hν
+        - ν = (gμB/h)B for EPR
+        - ν(Hz) = c(cm/s)·ṽ(cm⁻1)
+        - VERIFY: the conversion result matches the correct order of magnitude by anchor (e.g., 500 MHz ≈ 0.0167 cm⁻1).
+
+        7) CALC/CONVERT module
+        7.1 Definitions first, then algebra
+        - ALWAYS write the defining equation for the target observable before substituting numbers.
+        - VERIFY: units on both sides match (dimensional check).
+
+        7.2 Unit normalization (explicit)
+        - Convert all inputs into a consistent unit set (SI unless spectroscopy conventions demand G/mT/ppm).
+        - VERIFY: at least one nontrivial conversion is shown and is necessary for the final value.
+
+        7.3 Intermediate check
+        - Compute at least one intermediate value (e.g., B0 from ν, ΔE/kT, ppm↔Hz, exponent argument).
+        - VERIFY: the intermediate passes the chosen anchor(s).
+
+        7.4 Back-solve options (mandatory discriminator for numeric questions)
+        - For each numeric option, back-solve to an implied physical parameter (implied B0, implied g, implied ΔE/kT, implied K, implied oxidation state, etc.) using the same defining equation.
+        - VERIFY: exactly one option yields implied parameters consistent with all cues and anchors; at least two options fail by a clear falsifier (unit mismatch, impossible sign, anchor violation, wrong scaling across conditions).
+
+        8) COUNT module (non-spectroscopy too)
+        - Build the counting model explicitly (entities, degeneracies, symmetry/equivalence classes).
+        - ALWAYS perform a “scope test” if options suggest it: full count vs common simplified count (only if option patterns indicate instructor intent).
+        - VERIFY: you can justify any simplification by an explicit cue or a strong option-structure signal; and exactly one scope appears among the options.
+
+        9) IDENTIFY module
+        - Translate stem into hard constraints first (charge, oxidation state, electron count, strong/weak field expectations, periodic trends, solubility rules, acid/base strength).
+        - Eliminate using constraints before using “typical examples.”
+        - VERIFY: at least one option is ruled out by an impossibility (not a preference), and only one option remains.
+
+        10) USE / “can be used” module (mandatory two-layer screen)
+        - Layer 1 (necessary property): identify the defining property required for the role (e.g., paramagnetism, strong oxidant, Brønsted base, ligand lability, etc.).
+        - Layer 2 (operational feasibility): assess practicality/feasibility in typical course conditions (kinetic inertness vs lability, redox instability, precipitation/insolubility, competing reactions, inability to access the site, etc.).
+        - IF multiple options pass Layer 1, THEN Layer 2 is mandatory and must decide the answer.
+        - VERIFY: at least one rejected option fails feasibility even though it passes the defining property; and the chosen option uniquely satisfies both layers.
+
+        11) EXPLAIN module (enforce a single tested contrast)
+        11.1 Contrast-axis commitment
+        - State the exact predicate being explained and the single contrast axis the options are targeting (cause vs consequence; detectability limit; kinetic vs thermodynamic; sensitivity at ω0 vs near 0; etc.).
+        - VERIFY: identify a minimal pair of options that differ mainly along that axis.
+
+        11.2 Anti-“generic true” rule
+        - IF more than one option seems true in isolation, THEN you must re-evaluate which one uniquely answers the predicate along the targeted axis.
+        - VERIFY: at least two distractors are rejected as (i) wrong axis, (ii) reversed causality, or (iii) consequence-not-cause.
+
+        12) INVERT / EXCEPT / LEAST / CANNOT module
+        - Rewrite the question in non-inverted form and label each option as “satisfies” or “violates.”
+        - VERIFY: at least three options satisfy the non-inverted statement and the chosen option violates it for a specific, checkable reason tied to a cue/constraint.
+
+        13) Final gate (must pass before selecting)
+        - Units/dimensions consistent with target.
+        - Sign/order consistent with wording (“downfield,” “exceeds by,” “lowest to highest,” etc.).
+        - Anchor gates satisfied and, when applicable, cross-condition trends satisfied.
+        - A discriminator was actually used: back-solving (7.4), scope test (8), feasibility screen (10), or minimal-pair contrast (11).
+        - VERIFY: at least two distractors are ruled out by explicit falsifiers (not vibes).
+
+        Fallback Protocol (only after Steps 1–13 were attempted)
+        F1) Quantify mismatch
+        - If no option matches, compute r = (closest option)/(your result).
+        - VERIFY: r is close to a recognizable single-source factor (2, 3, 1/2, 2π, 1/(2π), 10, 100, lines−1 vs lines, total spread vs adjacent spacing).
+
+        F2) One-change loop (apply exactly ONE repair per loop)
+        Choose the most cue/option-justified repair:
+        - Unit prefix swap (G↔T, mT↔G, MHz↔GHz, ppm↔Hz).
+        - Convention swap (Hz↔rad/s; adjacent spacing↔total spread; line field↔center field; lines↔intervals).
+        - Direction swap (sample vs reference; “exceeds by” direction; ratio inversion).
+        - Scope swap (include/exclude a coupling or term) ONLY if option structure strongly signals the instructor’s intended scope.
+        - Geometry remap (re-derive θ from the given angle with a clear vector definition).
+        Before recomputing, predict the direction and approximate factor change.
+        - VERIFY: the recomputed value changes by the predicted factor and now matches exactly one option while satisfying anchors and trends.
+
+        F3) If still ambiguous after two loops
+        - Prefer the option that is consistent with the greatest number of explicit cues AND all anchors/trends.
+        - VERIFY: you can explicitly state why the remaining alternatives fail (factor error, violated trend, contradicted cue, or infeasible use).
+
+        Select exactly one option only after the final gate passes.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.7018
