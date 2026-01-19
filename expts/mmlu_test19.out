@@ -1,0 +1,109 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1-mini", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test19.out", "logs": "expts/mmlu_logs19.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 20, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 8, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.7678571428571428
+======== ROUND 2 =========
+acc: 0.7142857142857143
+======== ROUND 3 =========
+acc: 0.7857142857142857
+======== ROUND 4 =========
+acc: 0.8035714285714286
+======== ROUND 5 =========
+acc: 0.75
+======== ROUND 6 =========
+acc: 0.75
+======== ROUND 7 =========
+acc: 0.6964285714285714
+======== ROUND 8 =========
+acc: 0.5892857142857143
+======== ROUND 9 =========
+acc: 0.7678571428571428
+======== ROUND 10 =========
+acc: 0.625
+======== ROUND 11 =========
+acc: 0.7142857142857143
+======== ROUND 12 =========
+acc: 0.7678571428571428
+BEST PROMPT for subject college_chemistry:
+# Task
+You are solving a college-level chemistry multiple-choice question. Choose exactly ONE of the provided options.
+
+Operate as a gated procedure. Every gate marked VERIFY must be satisfied before moving on.
+
+1) Non‑negotiable constraints (apply to all questions)
+- ALWAYS select one and only one listed option (letter/text); VERIFY your final choice exactly matches one provided option.
+- NEVER introduce non-universal factual data not present in the stem or answer choices (examples: isotope spins/magnetic moments, natural abundances, standard EPR band frequencies, gyromagnetic ratios, tabulated pKa/E° values); INSTEAD use only (i) data in the prompt/options, or (ii) universal physical constants required by a stated law; VERIFY every non-universal value you used is explicitly provided.
+- NEVER “choose the closest” numeric option after getting a mismatch; INSTEAD locate the cause (units, definitions, 2 vs 2π, half vs full splitting, sign) and recompute; VERIFY one option matches within rounding consistent with given sig figs.
+
+2) What is being asked (directionality + task type)
+- Identify the task type: numeric compute, conceptual mechanism, ordering/trend, identification, “except/not/least,” or “most accurate/best explanation”; VERIFY your target (quantity/claim) matches the stem wording exactly.
+- Perform a negation/comparative audit (NOT/EXCEPT/LEAST/GREATEST/longer/shorter/more/less); VERIFY you wrote the required direction (e.g., “which cannot,” “which is longest,” “most accurate”).
+
+3) Regime/condition extraction (forces correct model choice)
+- List all explicit conditions/flags (solution vs rigid, high-field, fast exchange, resolved/unresolved, X-band frequency given, J≫a, temperature, pressure, etc.); VERIFY each condition is either used as a constraint or explicitly declared irrelevant with a reason.
+
+4) Operational-definition gate (prevents “term collapse”)
+- For each key domain phrase in the stem (e.g., “paramagnetic quencher,” “spin trapping,” “T1 vs T2,” “resonant field positions,” “polarization,” “occupancy”), write the operational criterion that makes the statement true in that subfield (mechanism + necessary condition); VERIFY your criterion is not just a synonym (e.g., not “paramagnetic quencher = paramagnetic”), and includes what must happen physically/experimentally.
+
+5) Choose the governing framework (minimal equations/definitions only)
+- Select the smallest set of principles that directly decide among options (law/definition/selection rule); VERIFY each symbol used appears in the stem or is a universal constant.
+- IF multiple frameworks seem possible THEN pick the one forced by the regime flags (Step 3) and operational definition (Step 4); VERIFY the chosen framework uses all relevant flags.
+
+6) Data legality + sufficiency gate (prevents hidden lookups)
+- BEFORE calculating or eliminating, check whether the problem is solvable without external tables:
+  - IF it requires a tabulated property not provided (isotope magnetic moments, band frequencies, gyromagnetic ratios, etc.) THEN enter “Information-Not-Provided Mode”:
+    a) Use ONLY constraints explicitly given (e.g., stated nuclear spin I, charge, equivalence, multiplicity, stoichiometry) to eliminate options.
+    b) Use option-set inference ONLY when the options themselves supply the needed mapping/value.
+    c) Do not fabricate “typical” values.
+  - VERIFY that any elimination is justified by an explicit given constraint or an option-provided value/statement.
+
+7) Computation/derivation discipline (when numbers are present)
+- Write the equation in a unit-consistent form and perform dimensional analysis; VERIFY the derived quantity has the requested units (or is dimensionless).
+- Do a definitions audit for ambiguous quantities: splitting (half vs full), ω vs ν, h vs ħ, ppm vs Hz, G vs T; VERIFY you chose one convention and applied it consistently from start to finish.
+- IF you use a shortcut constant (e.g., GHz/T conversions) THEN derive it from universal constants or prove equivalence to the base equation; VERIFY both routes give the same center value within rounding.
+
+8) Spectroscopy-specific gates (triggered only when relevant)
+- IF the question is EPR/NMR line counting THEN:
+  - Identify nuclei groups and whether they are explicitly equivalent; VERIFY equivalence is stated or justified by symmetry in the stem.
+  - Apply the correct first-order resolved-line rule only if high-field/first-order is justified; VERIFY the first-order condition is consistent with the stem (or is the only viable assumption).
+  - Do a resolution audit if needed: IF the stem says “lines do not overlap” THEN treat stated couplings as resolved; IF the stem does not state resolution THEN do not assume additional couplings are resolved unless forced by options; VERIFY your assumed resolution state is written explicitly.
+- IF exchange/strong coupling/multiple electrons are explicitly mentioned (J, triplet/singlet, biradical) THEN determine the active manifold and allowed transitions before counting; VERIFY the regime limit changes (or does not change) the number of observable lines consistent with the stated limit.
+
+9) “Most accurate / best explanation” adjudication gate
+- For each option, translate it into a testable claim tied to your framework (Step 5) and the operational definition (Step 4).
+- Rank options by:
+  (i) Necessity: must be true for the phenomenon under the stated conditions.
+  (ii) Sufficiency: explains the phenomenon without adding unstated assumptions.
+  (iii) Specificity: names the correct limiting mechanism/frequency/selection rule rather than a vague correlation.
+- VERIFY the chosen option is necessary and (as stated) sufficient under the stem’s conditions, and that each rejected option fails at least one of (i)–(iii) for a specific reason.
+
+10) Option-mismatch protocol (tight, capped)
+- IF your computed/derived result does not match any option THEN do the following in order, with at most ONE pass each:
+  a) Units + prefixes check (mT/T, MHz/Hz, rad/s vs Hz, 2π); VERIFY corrected units produce a valid match OR rule out.
+  b) Definition check (half vs full splitting, sign, “center vs edge,” population ratio vs polarization); VERIFY corrected definition produces a match OR rule out.
+  c) Assumption/resolution audit (resolved vs unresolved couplings; regime flag usage); VERIFY revised assumption is consistent with the stem and yields a match OR conclude inconsistency.
+- NEVER continue looping beyond these checks; INSTEAD proceed to Step 11; VERIFY you performed (a)–(c) or explicitly stated why one is inapplicable.
+
+11) Final decision under ambiguity (hard elimination only)
+- IF still ambiguous/underdetermined THEN eliminate options that violate any hard constraint:
+  - wrong units/dimensions,
+  - wrong sign/inequality direction (especially for NOT/EXCEPT),
+  - violates a stated regime flag/selection rule,
+  - contradicts an invariant implied by the governing law derived from universal constants and given data.
+- Choose among remaining options only after at least one explicit elimination; VERIFY each eliminated option fails a named constraint and the selected option does not.
+
+12) Final consistency check
+- Restate what the chosen option asserts and compare to your derived conclusion (including directionality and definitions); VERIFY they agree in sign, magnitude (within rounding), and interpretation.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.7368

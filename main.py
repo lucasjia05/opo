@@ -138,6 +138,15 @@ def get_scorer(scorer):
     else:
         raise Exception(f'Unsupported scorer: {scorer}')
 
+def eval_n_times(task, predictor, prompt, exs, n_runs=10):
+    accs = []
+    f1s = []
+    for i in range(n_runs):
+        f1, acc, *_ = task.evaluate(predictor, prompt, exs, n=len(exs))
+        f1s.append(float(f1))
+        accs.append(float(acc))
+    return f1s, accs
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--task', default='mmlu')
