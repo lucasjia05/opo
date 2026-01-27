@@ -386,8 +386,8 @@ class OnlineProTeGi(PromptOptimizer):
 
                 p = self._compress_prompt_to_budget(
                     p,
-                    target_tokens=self.opt.get("prompt_token_target", 1000),
-                    hard_max_tokens=int(self.opt.get("prompt_token_target", 1000) * 1.2)
+                    target_tokens=self.opt.get("max_prompt_length", 1000),
+                    hard_max_tokens=int(self.opt.get("max_prompt_length", 1000) * 1.2)
                 )
 
                 new_prompts.append(p)
@@ -411,34 +411,38 @@ class OnlineProTeGi(PromptOptimizer):
             return prompt_text  # soft limit: allow small overruns
         print(f"\nPrompt too long at {tok} tokens\n")
         compressed = prompt_text
-        for _ in range(max_passes):
+        for i in range(max_passes):
             compressor_prompt = f"""
             You are a prompt compressor.
 
-            Goal: Rewrite the INPUT prompt to be <= {target_tokens} tokens.
-            Requirements:
-            - Preserve ALL behavioral constraints, decision rules, and safety checks.
-            - Do NOT add new behaviors or new requirements.
-            - Remove redundancy first, then merge overlapping rules, then shorten phrasing.
-            - Prefer bullets/numbered rules. Remove examples before removing rules.
-            - Output ONLY the rewritten prompt (no commentary, no tags).
+            The current prompt has {tok} tokens after {i} compression passes. There are {max_passes - i} passes remaining.
+            ABSOLUTE REQUIREMENT: Your output MUST be <= {target_tokens} tokens.
+
+            Compression policy:
+            - Preserve core decision rules and constraints.
+            - Remove redundancy and merge overlapping rules aggressively.
+            - If still too long, DELETE lowest-priority guidance first (style tips, hedging, extra explanation).
+            - Remove examples and meta-commentary entirely.
+            - Output ONLY the rewritten prompt text (no commentary, no tags, no token counts).
 
             INPUT PROMPT:
             {compressed}
             """.strip()
 
-            res = utils.chatgpt(compressor_prompt, n=n, model=model)
+            res = utils.chatgpt(compressor_prompt, n=n, model=model, temperature=0.3)
             candidate = res[0] if isinstance(res, list) and len(res) else (res or "")
             candidate = candidate.strip() if candidate else ""
-
-            compressed = candidate
-            tok = utils._count_tokens(compressed, model=model)
+            newtok = utils._count_tokens(candidate, model=model)
+            if(newtok < tok):
+                tok = newtok
+                compressed = candidate
             if tok <= hard_max_tokens:
                 break
-            print(f"  Still too long at {tok} tokens after compression pass\n")
+            print(f"Still too long at {tok} tokens after compression pass\n")
         if tok > hard_max_tokens:
             with open(self.opt['out'], 'a') as outf:
                 outf.write(f"Warning: prompt still too long at {tok} tokens after compression\n")
+            compressed = utils.hard_truncate(compressed, hard_max_tokens, model=model)
         with open(self.opt['out'], 'a') as outf:
             outf.write(f"Final prompt at {tok} tokens\n")
         return compressed

@@ -1,0 +1,930 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test25.out", "logs": "expts/mmlu_logs25.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 8, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 8, "min_delta": 0.0001, "max_prompt_length": 2000, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_computer_science==========
+======== ROUND 1 =========
+acc: 0.8448275862068966
+======== ROUND 2 =========
+acc: 0.896551724137931
+======== ROUND 3 =========
+acc: 0.9310344827586207
+======== ROUND 4 =========
+Final prompt at 896 tokens
+acc: 0.8620689655172413
+======== ROUND 5 =========
+acc: 0.8793103448275862
+======== ROUND 6 =========
+acc: 0.9137931034482758
+======== ROUND 7 =========
+acc: 0.8793103448275862
+======== ROUND 8 =========
+acc: 0.9655172413793104
+BEST PROMPT for subject college_computer_science:
+# Task
+You are answering a multiple-choice question. Choose exactly one listed option. Use only the stem plus standard textbook definitions/invariants for the named topic. Do not rely on “typical implementations/practice” unless the stem explicitly says so.
+
+1) Pin down what is asked
+- ALWAYS write one line: “Target: …” repeating the key noun(s) from the question verbatim; VERIFY those noun(s) appear exactly as in the stem.
+- ALWAYS list the structural qualifiers that restrict valid cases (graph type, DFS/BFS, deterministic/nondeterministic, time-sharing/dedicated, bounded/unbounded, adjacency-penalty, etc.); VERIFY you include at least one qualifier whose negation would change what can happen.
+
+2) Use the correct model (no hidden powers)
+- NEVER introduce extra mechanisms/features not stated (e.g., forwarding, OOO, fairness guarantees, interrupts, special rounding modes, extra memory/state); INSTEAD assume only what the stem + standard definition requires; VERIFY you can point to either a stem phrase or a named standard definition for every nontrivial assumption.
+- IF you use a counterexample THEN specify its state carriers (inputs/parameters/globals/mutable memory/initial tape, etc.); VERIFY you explicitly name at least one carrier and it is allowed by the stem.
+
+3) Select the governing rule/invariant and validate exclusions
+- ALWAYS name the key definition/theorem/invariant you will use and its preconditions; VERIFY each precondition matches your qualifier list.
+- IF you claim some case cannot happen (an “excluded case”) THEN justify it by a known invariant for that structure (e.g., undirected DFS edge property); VERIFY you write the invariant and the structure it applies to.
+- NEVER use an excluded case as a counterexample; INSTEAD build a counterexample consistent with all qualifiers; VERIFY you explicitly check each qualifier against your counterexample.
+
+4) Handle quantifiers correctly (“must”, “NOT”, “guaranteed”)
+- IF the stem uses “must/always/guaranteed” THEN treat it as universal over all inputs and all allowed internal choices; VERIFY you restate this universal quantification before judging options.
+- IF the stem asks “NOT true/false” THEN choose an option that is falsified by (a) a concrete valid example or (b) direct contradiction with a definition/theorem; VERIFY you provide the falsifier or the contradiction sentence.
+- IF multiple options seem disputable due to wording like “because/justification” THEN prioritize the option that is unambiguously false under the standard model (definition/invariant), not the one that is merely poorly phrased; VERIFY you state one decisive reason tied to a definition/invariant.
+
+5) Optimization / scheduling / minimum-maximum (use when relevant)
+- ALWAYS produce two separate items: (a) a valid construction achieving value V, and (b) a schedule-independent bound B that applies to every valid solution; VERIFY you explicitly write both “achieves V” and “any solution ≥/≤ B”.
+- IF you assert an “unavoidable penalty count” THEN prove it with a global dependency/critical-path/separator-impossibility argument (not by trying a few orders); VERIFY your proof contains the phrase “for any schedule/order” and cites the forcing dependency.
+- IF V ≠ B THEN do not claim optimal; INSTEAD improve construction or strengthen bound (or do a complete finite-case elimination); VERIFY you conclude optimality only if V=B or you state a finite exhaustive argument.
+
+6) Bounded-parameter decidability / “ever reaches threshold n” (use when relevant)
+- IF input includes n and the property is “reaches/visits/scans/prints at least n …” THEN check whether staying below n forces the machine into a finite configuration space (finite control + bounded head range/tape region/etc.); VERIFY you either describe the finite bound or explicitly explain why it is not finite.
+- IF the property is “ever (possibly after step n)” THEN separate: YES via simulation until a witness, and NO via loop-detection only when the “below-threshold” region is finite; VERIFY you state both conditions and whether NO is decidable.
+
+7) Sequential execution semantics (trigger only when “execute on a sequential machine” / “evaluation strategy” / “operational order” appears)
+- ALWAYS interpret “execute on a sequential machine” as requiring a deterministic next-step choice whenever multiple rules/clauses/arguments are eligible; VERIFY you identify at least one required choice point (rule selection, clause selection, goal/argument order, etc.).
+- ALWAYS distinguish declarative meaning vs operational strategy; VERIFY you state which one the question is asking about.
+
+8) Option-by-option elimination + no-matching recovery
+- ALWAYS evaluate every option and reject each non-chosen option with a specific failing reason tied to a definition/invariant/bound/counterexample; VERIFY every non-chosen option has an explicit failure reason.
+- IF your derived result is not among the options OR more than one option survives THEN do not pick “closest” and do not invent “none” unless it is an option; INSTEAD re-check in this order: qualifiers → governing invariant → model assumptions → (if optimization) bound proof → arithmetic; VERIFY you revise or reaffirm at least one earlier claim and end with exactly one surviving option.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 2: business_ethics==========
+======== ROUND 1 =========
+acc: 0.8448275862068966
+======== ROUND 2 =========
+acc: 0.8103448275862069
+======== ROUND 3 =========
+Final prompt at 1045 tokens
+acc: 0.8793103448275862
+======== ROUND 4 =========
+Warning: prompt still too long at 1234 tokens after compression
+Final prompt at 1234 tokens
+acc: 0.8620689655172413
+======== ROUND 5 =========
+Warning: prompt still too long at 1257 tokens after compression
+Final prompt at 1257 tokens
+acc: 0.8620689655172413
+======== ROUND 6 =========
+Final prompt at 1015 tokens
+acc: 0.896551724137931
+======== ROUND 7 =========
+Warning: prompt still too long at 1330 tokens after compression
+Final prompt at 1330 tokens
+acc: 0.6551724137931034
+======== ROUND 8 =========
+Warning: prompt still too long at 1327 tokens after compression
+Final prompt at 1327 tokens
+acc: 0.8793103448275862
+BEST PROMPT for subject business_ethics:
+# Task
+You are solving a multiple-choice item under strict-evidence rules: use only (i) the stem text and (ii) brief textbook-style definitions for concepts explicitly named in the stem. Do not import external lists, “common practice,” or factual typicality unless stated in the stem.
+
+1) Classify the task (choose exactly one):
+A. Cloze: one or more blanks.
+B. Membership/exception: asks which option is (NOT) a principle/factor/component/etc.
+C. Statement evaluation: the stem is a declarative claim to be judged true/false (or best characterization).
+D. Index-set response format: options are index lists (e.g., “1,3,4”) and the stem is not an index-mapped claim.
+
+Rules:
+- IF the stem is a declarative claim, THEN choose C; VERIFY by quoting the predicate.
+- ELSE IF blanks exist, THEN choose A.
+- ELSE IF the stem asks “which is/NOT …”, THEN choose B; VERIFY by quoting the question cue.
+- ELSE IF options are index sets, THEN choose D.
+- VERIFY you state exactly one label A–D.
+
+2) Extract constraints from the stem:
+- ALWAYS extract ≥3 constraints unless fewer than 3 exist; VERIFY each includes a direct quote substring.
+- IF negation cues appear, THEN add a constraint encoding that polarity; VERIFY by quoting the cue.
+
+3) Assess information richness:
+- Label the stem as LABEL-ONLY if it is just a term/NP with no attributes, or RICH if you can quote ≥2 distinct attributes.
+- VERIFY by listing the quoted attributes or stating “no attributes beyond label.”
+
+4) Authority / list handling:
+- IF a specific authority/code/theory is named, THEN set AUTHORITY NAMED = YES; otherwise NO; VERIFY by quoting the authority name when YES.
+- Set REPRODUCED ITEMS = YES only if the stem lists the membership items/criteria; otherwise NO; VERIFY by quoting the reproduced items when YES.
+- IF AUTHORITY NAMED = YES AND REPRODUCED ITEMS = NO, THEN do NOT fabricate the authority’s item list; VERIFY you state “items not reproduced.”
+
+5) Index mapping check:
+- IF the stem provides an explicit key, THEN KEY MISSING = NO; VERIFY by quoting the key.
+- ELSE KEY MISSING = YES; VERIFY you state “no mapping/key shown.”
+
+6) Type-specific decision rules:
+
+A) Cloze (blanks):
+- Choose the option that best satisfies stem constraints using only local text-fit:
+  - grammar/part-of-speech agreement,
+  - parallel structure,
+  - referent consistency,
+  - explicit polarity cues,
+  - discourse linkage.
+Rules:
+- IF a discourse marker appears, THEN use it only to link clauses; VERIFY by quoting the marker and naming the linked clauses.
+- NEVER argue from typicality; justify via quoted constraints and local coherence; VERIFY you either quote a stem typicality qualifier or state none exists.
+- NEVER reinterpret positive/neutral terms as their absence unless explicitly stated; VERIFY by quoting such a cue if used.
+- IF the stem says “contrasts with X”, THEN do NOT treat that as “not X” unless explicit exclusive syntax appears; VERIFY by quoting exclusive syntax if enforced.
+- If core explanatory content conflicts with a framing/tag clause, set TENSION = YES and prioritize the more technically specific clause; VERIFY by quoting both conflicting substrings.
+
+B) Membership / “which is NOT”:
+- IF REPRODUCED ITEMS = YES, THEN decide strictly by matching those items; VERIFY by quoting the matching/non-matching line.
+- IF AUTHORITY NAMED = YES AND REPRODUCED ITEMS = NO, THEN:
+  - prefer options that fit the stem’s category noun using definitions of explicitly named concepts only;
+  - use outlier-style clustering only as a last resort; VERIFY you quote the category noun and state “clustering used: yes/no.”
+- If clustering is used: find the largest subset sharing a clear lexical style aligned with the category noun; pick the remaining option; VERIFY you list the cluster members.
+
+C) Statement evaluation:
+- Apply only definitions for concepts explicitly named in the stem; VERIFY you quote each concept name.
+- IF options are index sets AND KEY MISSING = NO, THEN evaluate using the provided key; VERIFY by quoting at least one mapped element.
+- IF options are index sets AND KEY MISSING = YES, THEN do NOT treat the indices as truth-evaluable; switch to the “mapping-missing response-format policy” in section 7; VERIFY you quote the declarative predicate.
+
+D) Index-set response format:
+- If KEY MISSING = NO, use the key; VERIFY by quoting it.
+- If KEY MISSING = YES, use section 7.
+
+7) Mapping-missing response-format policy:
+Indices have no interpretable meaning without a key. Do not invent meanings.
+
+7.1 LABEL-ONLY stem policy:
+- IF stem is LABEL-ONLY, THEN choose deterministically by option structure only:
+  1) compute each option’s set_size;
+  2) choose the median set_size among options;
+  3) if multiple options share that median size, choose the lexicographically smallest index list.
+  VERIFY you list all set_sizes, identify the median size, and show tied candidates if any.
+
+7.2 RICH stem policy:
+- IF stem is RICH, THEN:
+  1) set attribute_count = number of quoted attributes;
+  2) choose options with set_size closest to attribute_count;
+  3) if tied, choose the smallest set_size among tied options;
+  4) if still tied, use lexicographic order as last resort.
+  VERIFY you report attribute_count with the quoted attributes, then show the tie set.
+
+8) Global tie discipline:
+- NEVER decide by plausibility or external memorized lists.
+- NEVER use lexicographic ordering until all applicable checks have been applied and a tie remains; VERIFY you list the tied options before lexicographic use.
+
+9) Commitment:
+- Output exactly one option letter.
+- Do not answer “cannot determine.”
+- VERIFY you selected exactly one letter.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 3: astronomy==========
+======== ROUND 1 =========
+Final prompt at 1020 tokens
+acc: 0.686046511627907
+======== ROUND 2 =========
+Final prompt at 1180 tokens
+acc: 0.9651162790697675
+======== ROUND 3 =========
+Warning: prompt still too long at 1310 tokens after compression
+Final prompt at 1310 tokens
+acc: 0.9418604651162791
+======== ROUND 4 =========
+Final prompt at 1039 tokens
+acc: 0.9651162790697675
+======== ROUND 5 =========
+Final prompt at 1133 tokens
+acc: 0.9651162790697675
+======== ROUND 6 =========
+Warning: prompt still too long at 1226 tokens after compression
+Final prompt at 1226 tokens
+acc: 0.9534883720930233
+======== ROUND 7 =========
+Warning: prompt still too long at 1279 tokens after compression
+Final prompt at 1279 tokens
+acc: 0.9651162790697675
+======== ROUND 8 =========
+Final prompt at 1176 tokens
+acc: 0.9302325581395349
+BEST PROMPT for subject astronomy:
+# Task
+You answer multiple-choice questions with controlled evidence from:
+
+1) The stem and choices.
+2) Short textbook-style definitions for concepts in the stem.
+3) Standard reference facts for explicitly named concrete entities (proper nouns) only when the stem asks for an association, attribute, or ranking involving that entity.
+
+Avoid niche trivia, long lists, or “usually true” generalizations.
+
+Step 1 — Classify the item (choose one label)
+A) Cloze: one or more blanks (_____ / …).
+B) Exception/membership-with-negation: asks for NOT / EXCEPT / least / false among a set.
+C) Statement evaluation: asks which statements are true/false/correct/incorrect.
+D) Index-set: answer options are sets of indices (e.g., “I, II, IV”) with no explicit mapping.
+E) Property/Ranking selection: asks which option has a property or satisfies a criterion, including ranking/extremes, without an explicit NOT/EXCEPT cue.
+
+Rules:
+- IF the stem contains blanks, THEN type=A; VERIFY by quoting the blank token.
+- ELSE IF the stem contains “true/false/correct/incorrect” in a “Which of the following…” style, THEN type=C; VERIFY by quoting that phrase.
+- ELSE IF the stem contains an explicit exclusion cue, THEN type=B; VERIFY by quoting the exclusion cue.
+- ELSE IF the options are index lists/sets, THEN type=D; VERIFY by quoting one full option.
+- ELSE type=E; VERIFY by quoting the property/ranking phrase.
+
+Step 2 — Extract decision-relevant constraints (stem-only)
+ALWAYS list 2–5 constraints that restrict the answer; VERIFY each includes an exact quote from the stem.
+- IF a ranking/extreme is asked, THEN add a ranking constraint; VERIFY by quoting the ranking word/phrase.
+- IF an exclusion is asked, THEN add a polarity constraint; VERIFY by quoting the exclusion cue.
+- NEVER add directionality unless the stem contains an explicit direction word; say “no explicit direction word”; VERIFY by quoting the direction word if used.
+
+Step 3 — Evidence policy for factual associations
+- ALWAYS check if the stem’s target is a direct association/rank about a named concrete entity. IF yes, THEN you MAY use standard reference facts; VERIFY by quoting proper noun(s) and query cue, labeling each fact as “standard reference fact”.
+- NEVER use lexical overlap, option name length, or letter order as a proxy; use stem-given information, allowed standard reference facts, or declare insufficiency; VERIFY which was used.
+
+Step 4 — Type-specific decision rules
+A) Cloze
+- Use local grammatical fit + stem constraints.
+- IF multiple options fit equally and no allowed reference fact applies, THEN declare INSUFFICIENT; VERIFY tied options.
+
+B) Exception/membership-with-negation
+- Use stem-provided membership criteria or reproduced lists if present.
+- IF no criteria AND the question is about a real-world factual set, THEN use standard reference facts; VERIFY facts.
+- IF still not separable, THEN declare INSUFFICIENT; VERIFY tied options.
+
+C) Statement evaluation
+- Evaluate each option’s truth using: stem content + definitions + allowed standard reference facts; VERIFY each external fact is labeled.
+- Combo/meta options policy: IF an option is “A and B / I and II / All of the above / None of the above”, THEN decide truth of referenced base options, then the combo; VERIFY quoted combo text and referenced letters.
+- If truth values cannot be determined, THEN declare INSUFFICIENT; VERIFY missing information.
+
+D) Index-set (unmapped)
+- IF the stem provides an explicit mapping/key, THEN use it; VERIFY by quoting the mapping.
+- ELSE choose deterministically by structure:
+  1) Compute set size for each option; VERIFY sizes.
+  2) Compute index frequencies; VERIFY frequency table.
+  3) Compute average Jaccard overlap; VERIFY centralities.
+  Decision:
+  - Prefer options with size closest to the median size; VERIFY median and distances.
+  - If tie, choose highest centrality; VERIFY maximum.
+  - If still tie, choose earliest letter; VERIFY final tied set.
+
+E) Property/Ranking selection
+- Use stem constraints plus allowed standard reference facts.
+- IF the stem provides needed values, THEN decide from that text; VERIFY quoted value/order.
+- IF the stem does not provide values but the property is a common reference fact, THEN use the minimal standard reference fact; VERIFY it.
+- IF neither stem values nor allowed reference facts can discriminate, THEN declare INSUFFICIENT; VERIFY tied options.
+
+Step 5 — Anti-loop / stop condition
+- ALWAYS perform at most: (i) one constraint-extraction pass and (ii) one decision pass; VERIFY no restatement of the same constraint.
+- IF a second attempt produces no new eliminations, THEN stop and output INSUFFICIENT; VERIFY “no progress in second pass” and list remaining options.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 4: college_mathematics==========
+======== ROUND 1 =========
+Final prompt at 895 tokens
+acc: 0.9137931034482758
+======== ROUND 2 =========
+Final prompt at 1020 tokens
+acc: 0.9310344827586207
+======== ROUND 3 =========
+acc: 0.9137931034482758
+======== ROUND 4 =========
+Final prompt at 1114 tokens
+acc: 0.896551724137931
+======== ROUND 5 =========
+Final prompt at 881 tokens
+acc: 0.9482758620689655
+======== ROUND 6 =========
+Final prompt at 971 tokens
+acc: 0.8448275862068966
+======== ROUND 7 =========
+Final prompt at 1074 tokens
+acc: 0.896551724137931
+======== ROUND 8 =========
+Final prompt at 1116 tokens
+acc: 0.9137931034482758
+BEST PROMPT for subject college_mathematics:
+# Task
+You answer multiple-choice questions by enforcing the stem’s constraints first and using reasoning justifiable by computation, proof sketch, or explicit construction/counterexample. Aim for the uniquely supported best option (single-answer unless the stem explicitly allows multiple). Do not guess from wording, “standardness,” or option position.
+
+1) Answer mode and option structure
+- IF the stem allows multiple selections (“select all that apply”, “choose all”, “more than one”), THEN treat as multi-select; VERIFY by quoting the instruction.
+- OTHERWISE treat as single-answer; VERIFY by stating no explicit multi-select instruction appears.
+- IF any option is a bundle (“I and II only”, etc.), THEN evaluate each sub-statement first and match the bundle; VERIFY by listing sub-statement truth values.
+
+2) Task type identification
+- IF the stem has a blank (____), THEN treat as fill-in; VERIFY by quoting the blank.
+- ELSE IF the stem asks for an exception/NOT/false/least, THEN treat as negation/exception; VERIFY by quoting the cue.
+- ELSE IF the stem uses “must/always/for all” or asks which statements are true/false, THEN treat as statement-evaluation/necessity; VERIFY by quoting the cue.
+- OTHERWISE treat as general numeric/relationship selection; VERIFY by quoting what must be found.
+
+3) Decision constraints extraction
+- ALWAYS list 2–5 concrete constraints from the stem (domain, bounds, “uniform”, “ideal”, “subset”, etc.); VERIFY by quoting a fragment for each.
+- IF the stem implies an exact value/count/probability, THEN mark EXACT; VERIFY by quoting the exactness cue or the discrete/exact context.
+
+4) Outside-knowledge gate
+- IF you invoke a theorem/fact not explicitly given, THEN state it precisely and check at least one hypothesis from the stem; VERIFY by naming the hypothesis and where it is satisfied.
+- NEVER accept a sweeping uniqueness claim without proof or counterexample search; INSTEAD attempt a concrete alternative object first; VERIFY by presenting the attempted object and checking it against the stem constraints.
+
+5) Casework completeness + symmetry discipline
+- IF you split into cases (quadrants/sign/parameter regimes), THEN compute each case’s contribution and sum, OR justify multiplication by proving symmetry preserves BOTH the region AND the event; VERIFY by listing all cases with computed areas/values OR by naming the symmetry map and checking every inequality/event condition is preserved.
+- IF you claim a case has zero contribution, THEN test an explicit point from that case and show which constraint fails; VERIFY by plugging the point into all inequalities.
+- NEVER multiply by symmetry without checking event invariance; INSTEAD check invariance under the proposed map; VERIFY by applying the map to the event inequality.
+
+6) Method commitment rule
+- IF you introduce an alternate method (change of variables, complementary counting, polar/Jacobian, etc.), THEN either carry it through to a result OR explicitly abandon it with a specific reason; VERIFY by (a) completing the computation to an evaluable expression, OR (b) stating the blocker and naming the replacement method.
+
+7) “Must be true / for all” enforcement
+- IF the stem is necessity/“must be true”, THEN for EACH option: attempt at least one explicit counterexample BEFORE writing any proof; VERIFY by stating the counterexample candidate and checking it against the stem.
+- IF options quantify over sets/functions broadly, THEN try at least one of: (T1) add/remove a finite set, (T2) union/intersection with a dense/nowhere-dense set; VERIFY by naming the template used and why it succeeds/fails.
+- ALWAYS distinguish closure/interior/complement arguments in topology: name the operator used and the exact implication; VERIFY by writing the operator statement and the inclusion/equality you conclude.
+- IF more than one option still appears “must” in a single-answer item, THEN at least one reasoning step is wrong or the item is inconsistent; VERIFY by identifying the earliest nontrivial inference to re-audit and revising it.
+
+8) Work/rate/timeline problems
+- IF work alternates in blocks, THEN build a block table (worker, duration, work) up to completion; VERIFY by listing blocks including any partial block and its worker.
+- ALWAYS express completion as sum(duration × rate) = 1 job; VERIFY by writing the equation(s).
+- ALWAYS substitute back into EVERY given schedule after solving for unknown rates/times; VERIFY by computing the total work in each scenario and showing it equals 1 exactly.
+
+9) Uniform probability/area ratio checks
+- IF the distribution is uniform over a planar region, THEN probability = area(event)/area(total); VERIFY by writing both areas explicitly.
+- ALWAYS run a quick sanity check after computing a probability; VERIFY by stating the check and showing it is consistent with the final value.
+- NEVER use a Jacobian transform unless it simplifies BOTH numerator and denominator; INSTEAD prefer computing both areas in the same coordinate system; VERIFY by stating why your chosen method simplifies the computation.
+
+10) Option elimination + tie handling
+- ALWAYS eliminate options via a specific contradiction with a listed constraint, a computed mismatch, or a counterexample; VERIFY by stating which constraint/result removes which option.
+- NEVER resolve ties by option order, phrasing, or “more standard”; INSTEAD find a discriminating constraint/counterexample or conclude multiple remain consistent; VERIFY by listing remaining contenders and the discriminator.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 5: college_biology==========
+======== ROUND 1 =========
+acc: 0.9878048780487805
+======== ROUND 2 =========
+acc: 0.975609756097561
+======== ROUND 3 =========
+acc: 0.9878048780487805
+======== ROUND 4 =========
+acc: 0.9878048780487805
+======== ROUND 5 =========
+acc: 0.9634146341463414
+======== ROUND 6 =========
+acc: 0.9878048780487805
+======== ROUND 7 =========
+acc: 1.0
+======== ROUND 8 =========
+Final prompt at 948 tokens
+acc: 0.9878048780487805
+BEST PROMPT for subject college_biology:
+# Task
+You answer multiple-choice questions using checkable evidence (brief derivation, explicit example/counterexample, or a directly applicable definition/theorem). Do not decide by option order, style, length, or “typicality.”
+
+1) Determine selection mode and option structure
+- ALWAYS decide single-answer vs multi-select; VERIFY by quoting any “select all/choose all/more than one” instruction or stating it is absent.
+- IF an option bundles sub-claims (e.g., “I and II only”), THEN evaluate each sub-claim separately and map to the bundle; VERIFY by listing each sub-claim with True/False.
+
+2) Lock the intended scope before evaluating options (anti-scope-creep)
+- ALWAYS infer the intended domain/scope from internal cues in the stem/options (course level + setting); VERIFY by quoting 1–2 cue phrases and stating the scope in one line (e.g., “eukaryotic nuclear gene expression”).
+- IF any option/stem uses specialized process terms (e.g., “primary transcript/pre‑mRNA,” “5' cap,” “3' poly(A) tail,” “splicing”), THEN default scope to the system where those terms are standard (typically eukaryotic mRNA processing) unless the stem explicitly broadens scope; VERIFY by quoting the process terms and quoting an explicit broadening phrase if present (or stating none is present).
+- NEVER widen scope using rare/edge cases (unusual taxa, organelles, niche mechanisms) unless the item signals exception-level taxonomy; INSTEAD stay within the locked scope; VERIFY by stating “edge-case expansion allowed: yes/no” and quoting a trigger such as “exception,” “in some bacteria/archaea,” “group I/II,” “self-splicing,” etc. (or noting it is absent).
+- ALWAYS use one unified scope for all option checks; VERIFY by referencing the same scope label when judging each option (“Under scope S, option (X) …”).
+
+3) Identify the target (including polarity)
+- IF the stem includes NOT/EXCEPT/false/least, THEN target the uniquely violating option; VERIFY by quoting the negation cue.
+- OTHERWISE state the requested property/value; VERIFY by quoting the target phrase.
+- IF the stem uses must/always/for all, THEN treat as a necessity claim; VERIFY by quoting the universal cue.
+- IF the stem uses could/possible/there exists, THEN treat as an existence claim; VERIFY by quoting the existential cue.
+
+4) Extract constraints
+- ALWAYS extract 2–6 concrete constraints (domain, given values, process context, definitions, comparison direction); VERIFY by quoting a short fragment for each.
+- IF the task is comparative (higher/lower/more/less), THEN name the compared items; VERIFY by writing “comparison: __ vs __” with a quoted anchor.
+
+5) Evaluate options with auditable reasons (within the locked scope)
+- ALWAYS mark each option as satisfies / does not satisfy with one auditable reason; VERIFY by giving either:
+  (i) a computed/logic mismatch with a quoted constraint,
+  (ii) an explicit example/counterexample that stays inside the locked scope, or
+  (iii) a definition/theorem + at least one checked applicability condition from the stem; VERIFY by quoting the condition and stating how it is met.
+- IF an option uses absolute language (always/never/only/no effect/equal), THEN test it as a precise claim; VERIFY by stating the exact equality/inequality/sign claim being tested.
+
+6) Multi-violator and tie handling (no heuristic tie-breaks)
+- IF single-answer AND the stem is NOT/EXCEPT/false/least AND more than one option appears to violate under your current reading, THEN treat this as an interpretation problem and re-audit scope and key definitions before choosing; VERIFY by listing the violating options, then stating what was re-checked and whether the locked scope changed.
+- NEVER break ties by “most direct,” “most common,” “what answer keys usually pick,” or other typicality/wording heuristics; INSTEAD resolve only by (a) corrected scope/definition, (b) a targeted counterexample attempt inside scope, or (c) deriving a contradiction with a quoted constraint; VERIFY by showing the counterexample/contradiction or the scope correction that eliminates all but one option.
+- IF after scope/definition re-audit and targeted tests, two or more options still satisfy/violate in a single-answer item, THEN conclude the item is ambiguous or incomplete given the provided text; VERIFY by listing the tied options and naming the missing detail that would decide (e.g., organism/context/assumption).
+
+7) Exact-match stopping rule (subordinate to consistency)
+- IF you derive a result/claim that matches exactly one option AND no inconsistency flags are present (no scope conflict, no multi-violator in NOT/EXCEPT, no missing info), THEN select it and stop; VERIFY by stating “Derived __ matches option __” and “Consistency check: pass.”
+- IF any inconsistency flag is present, THEN do not stop early; INSTEAD run the scope/definition re-audit and re-evaluate options under the unified scope; VERIFY by stating which inconsistency flag triggered the re-audit.
+
+8) Debug/provenance rules (use only when explicitly asked to diagnose a failure)
+- ONLY apply provenance/transcript diagnosis steps when the user requests failure analysis; VERIFY by quoting the user’s request for diagnosis.
+- IF diagnosing, ALWAYS compare final selected option to the provided key before attributing failure; VERIFY by stating “Model final = __; Key = __; Match = yes/no.”
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 6: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.7857142857142857
+======== ROUND 2 =========
+Final prompt at 999 tokens
+acc: 0.7678571428571428
+======== ROUND 3 =========
+Final prompt at 961 tokens
+acc: 0.6785714285714286
+======== ROUND 4 =========
+Final prompt at 1127 tokens
+acc: 0.7321428571428572
+======== ROUND 5 =========
+Final prompt at 1057 tokens
+acc: 0.7678571428571428
+======== ROUND 6 =========
+Final prompt at 1045 tokens
+acc: 0.5714285714285714
+======== ROUND 7 =========
+Final prompt at 930 tokens
+acc: 0.6785714285714286
+======== ROUND 8 =========
+Final prompt at 1009 tokens
+acc: 0.75
+BEST PROMPT for subject college_chemistry:
+# Task
+You answer multiple-choice questions by validating each option with evidence within the intended scope. Do not use option order, stylistic cues, length, or “what test writers usually pick” as decision methods.
+
+1) Answer mode and option structure
+- ALWAYS determine if the item expects one answer or multiple selections; VERIFY by quoting any “select all/choose all/which are true” cue or stating “no multi-select cue present.”
+- IF any option bundles subclaims (e.g., “I and III only”), THEN split into subclaims, judge each, then map back to the bundle; VERIFY by listing subclaims with True/False.
+
+2) Lock scope using explicit cue hierarchy
+- ALWAYS infer scope from phrases inside the stem/options; VERIFY by quoting 1–2 cue phrases and naming the scope.
+- ALWAYS apply this priority when cues conflict:
+  (highest) specific process/structure markers and system vocabulary
+  > explicit organism/context qualifiers
+  > generic topic words.
+  VERIFY by naming one higher-priority cue and one lower-priority cue and stating which governs.
+- IF the stem/options contain system-specific processing markers (e.g., “primary transcript/pre‑mRNA”), THEN lock scope to the standard instructional system where those markers are taught; VERIFY by quoting ≥1 marker and stating the locked system.
+- NEVER widen scope to rare taxa, organelles, or niche mechanisms unless explicitly signaled; VERIFY by stating “edge-case expansion allowed: yes/no” and quoting an exception signal if yes.
+
+3) Set target and interpret quantifiers
+- IF the stem contains NOT/EXCEPT/false/least, THEN find the option that violates the stated property; VERIFY by quoting the negation word and stating the property.
+- Otherwise, state what property/value is being asked for; VERIFY by quoting the target phrase.
+- ALWAYS interpret quantifiers (only/always/never/must) as ranging over the locked scope unless explicitly expanded; VERIFY by quoting the domain-expander or stating it is absent.
+
+4) Gatekeeping rule for counterexamples
+- ALWAYS label each example/counterexample/definition as in-scope or out-of-scope; VERIFY by writing “in-scope: yes/no” with a tie to the locked scope.
+- IF a counterexample relies on unusual taxa or special mechanisms, THEN use it only if the item signals exceptions; VERIFY by quoting the signal or stating it is absent.
+- NEVER defeat an option using an out-of-scope counterexample; mark it inadmissible and re-evaluate the option within scope; VERIFY by stating why it is out-of-scope.
+
+5) Evaluate options with justification
+- ALWAYS keep one unified scope for all option checks; NEVER change it midstream without re-locking; VERIFY by stating “scope updated: yes/no” and quoting the cue if updated.
+- For each option, decide “satisfies target” or “does not satisfy target” and provide one checkable reason using:
+  (a) a short derivation tied to a quoted constraint,
+  (b) an in-scope example/counterexample,
+  (c) a definition/theorem plus at least one quoted condition.
+  VERIFY by labeling (a)/(b)/(c) and including at least one quote.
+
+6) Intro-course default
+- IF the item uses canonical terminology without exception flags and tests basic understanding, THEN treat standard textbook generalizations as intended truth conditions; VERIFY by stating “intro-default: on/off” and citing one cue.
+- NEVER treat “standard textbook generalization” as an illicit assumption; treat it as the default unless exceptions are requested; VERIFY by quoting any nuance cue or stating none.
+
+7) Uniqueness enforcement for single-answer items
+- IF the item is single-answer and NOT/EXCEPT/false/least and you find multiple violators, THEN re-audit scope and key term meanings; VERIFY by listing the violators and stating what was re-checked.
+- NEVER choose among multiple candidates by “best fit”; resolve only by (i) a scope re-lock justified by quotes, or (ii) showing one candidate fails within the re-locked scope. VERIFY by quoting the cue used or stating “still tied ⇒ underspecified.”
+- IF after re-audit two or more options still qualify, THEN conclude the question is ambiguous/underspecified; VERIFY by listing the tied options and naming the missing detail.
+
+8) Computation-only add-on
+- IF the problem requires algebra/quantitative work, THEN show minimal steps and cite each used numeric/relational given once; VERIFY by quoting each datum.
+- Perform one sanity check (units/sign/bounds); VERIFY by stating the check and the outcome.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 7: college_medicine==========
+======== ROUND 1 =========
+acc: 0.84
+======== ROUND 2 =========
+Final prompt at 935 tokens
+acc: 0.9
+======== ROUND 3 =========
+Final prompt at 907 tokens
+acc: 0.87
+======== ROUND 4 =========
+Final prompt at 976 tokens
+acc: 0.91
+======== ROUND 5 =========
+Final prompt at 1069 tokens
+acc: 0.92
+======== ROUND 6 =========
+Final prompt at 979 tokens
+acc: 0.86
+======== ROUND 7 =========
+acc: 0.8200000000000001
+======== ROUND 8 =========
+Final prompt at 1021 tokens
+acc: 0.9299999999999999
+BEST PROMPT for subject college_medicine:
+# Task
+You answer multiple-choice science and social-science questions by identifying the tested construct, translating the stem into a checkable criterion (including polarity and any required relation), interpreting wording using standard exam conventions, and selecting the best-keyed option with a controlled recovery step if the item is imperfect.
+
+1) Determine answer mode + clean up options
+- IF the stem includes “select all/choose all/all that apply,” THEN treat as multi-select; VERIFY by quoting that cue. Otherwise treat as single-answer; VERIFY by stating “single-answer; no multi-select cue.”
+- IF any option contains multiple claims, THEN split into atomic claims; VERIFY by listing the atoms.
+
+2) Parse stem into a criterion (target + polarity + relation)
+- IF the stem includes NOT/EXCEPT/LEAST/FALSE, THEN choose the nonconforming option; VERIFY by quoting the negation cue.
+- ALWAYS rewrite the stem as one success criterion; VERIFY by quoting the stem phrase that defines success.
+- ALWAYS state the governing relation required (cause→effect, increase→decrease, category-membership, equilibrium shift, etc.); VERIFY by writing it as an arrow or equivalence with named entities.
+
+3) Choose the tested construct (with a consistency check)
+- ALWAYS name the tested construct and cite 1–2 trigger terms; VERIFY by quoting those terms.
+- ALWAYS check whether the option set instantiates a standard named framework (e.g., attribution dimensions, Le Châtelier, cell-cycle phases, enzyme regulation); VERIFY by mapping each option to that framework’s labels.
+- ALWAYS validate construct choice: classify each option as “clean fit” vs “forced fit” under the chosen construct; VERIFY by giving a one-phrase reason per option.
+- IF ≥2 options are “forced fit,” THEN switch to a construct that yields cleaner fits; VERIFY by naming old vs new construct and the forced-fit counts.
+
+4) Exam-convention semantics (apply before eliminating)
+- IF bracket notation “[X]” appears, THEN interpret it using course-standard context (intro-chem: concentration; equilibrium expressions: activity/term); VERIFY by stating “brackets = ___” and quoting the context cue that justifies it.
+- IF an acid/base is added to an equilibrium, THEN write the neutralization step and predict the equilibrium shift direction; VERIFY by writing a net ionic line (e.g., H+ + OH− → H2O) and “shift = left/right.”
+- ALWAYS treat Ksp as unchanged unless temperature changes; VERIFY by stating the temperature cue (or “no temperature change stated”) and “Ksp unchanged.”
+- IF water appears as an option or implicit species, THEN decide whether the test treats water as (i) solvent ~constant or (ii) product of neutralization; VERIFY by stating “water role = solvent/product” and quoting the cue (dilution vs neutralization).
+- IF an option predicts precipitation of a typically soluble salt (e.g., most chlorides), THEN reject unless ion-product/supersaturation is implied; VERIFY by naming the solubility rule and stating whether supersaturation cues exist.
+
+5) Psychology/behavior items: do not default to “internal = best”
+- IF options are explanations for an outcome (contain “because/due to/teacher/test/home circumstances”), THEN treat the item as attribution/explanatory-style unless the stem explicitly asks about strategy; VERIFY by quoting a cause-phrase and naming the chosen framework.
+- ALWAYS score attribution options on locus (internal/external), stability (stable/unstable), and globality (global/specific); VERIFY by writing a 3-field tag for each option: L=__, S=__, G=__.
+- IF the stem asks about improvement after failure, THEN favor unstable + specific explanations (and secondarily controllable) over stable/global ones; VERIFY by stating “preferred profile = unstable + specific” and identifying which option matches it best.
+- NEVER assume “self-critique/study-method change” is automatically correct; INSTEAD select the option whose attribution/profile best matches the asked outcome; VERIFY by stating which dimension(s) the stem makes decisive.
+
+6) Evaluate options against the criterion
+- For each option, mark Meets / Fails / Off-target relative to the criterion and relation; VERIFY by stating one concrete constraint it satisfies or violates.
+- IF two options remain plausible, THEN use a discriminating check aligned to stem intent (e.g., stability vs controllability; equilibrium shift vs Ksp; definition vs example); VERIFY by stating “discriminator = ___” and quoting the stem cue.
+
+7) Recovery policy for imperfect items (single controlled step)
+- ALWAYS produce exactly one final choice; VERIFY by stating “forced-choice: yes.”
+- IF all options appear wrong under a literal reading, THEN re-interpret once using the most common exam convention for the domain and re-evaluate; VERIFY by labeling “literal pass: none/some” and “convention pass: option ___” plus the convention used.
+- NEVER loop or repeat indecision; INSTEAD apply one tie-break: choose the option that matches the canonical expected consequence and requires only a standard reinterpretation (not new external facts); VERIFY by stating the reinterpretation in ≤15 words.
+
+8) Final decision
+- Choose the option that best satisfies the success criterion under the chosen construct and exam conventions; VERIFY by restating the criterion and naming the single key reason the selected option wins.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 8: clinical_knowledge==========
+======== ROUND 1 =========
+Final prompt at 1054 tokens
+acc: 0.9261744966442953
+======== ROUND 2 =========
+Final prompt at 1100 tokens
+acc: 0.9194630872483222
+======== ROUND 3 =========
+Final prompt at 1179 tokens
+acc: 0.9463087248322147
+======== ROUND 4 =========
+Final prompt at 549 tokens
+acc: 0.9328859060402684
+======== ROUND 5 =========
+acc: 0.9328859060402684
+Final prompt at 1115 tokens
+acc: 0.9328859060402684
+======== ROUND 6 =========
+Final prompt at 1174 tokens
+acc: 0.9395973154362416
+Warning: prompt still too long at 1255 tokens after compression
+Final prompt at 1255 tokens
+acc: 0.9463087248322147
+======== ROUND 7 =========
+Final prompt at 1170 tokens
+acc: 0.9463087248322147
+Final prompt at 999 tokens
+acc: 0.9463087248322147
+======== ROUND 8 =========
+Final prompt at 988 tokens
+acc: 0.9261744966442953
+Final prompt at 1139 tokens
+acc: 0.9731543624161074
+BEST PROMPT for subject clinical_knowledge:
+# Task
+You answer multiple-choice questions in science/health/social-science by turning the stem into a checkable success condition, fixing key terms, and selecting the option that meets the condition with the fewest extra commitments. Follow these rules:
+
+1) **Selection mode + atomize options**
+   - If the stem has “select all/choose all,” treat as multi-select; verify by quoting the cue. Otherwise, treat as single-answer; verify by stating “single-answer; no multi-select cue quoted.”
+   - If any option has multiple claims, split into atomic claims; verify by listing the atoms.
+
+2) **Build the success condition**
+   - Restate the stem as one success condition; verify by quoting the stem words defining success.
+   - If the stem has a negation cue (NOT/EXCEPT), the success condition is “pick the nonconforming option”; verify by quoting the negation cue.
+   - State any explicit restriction; verify by quoting it or stating “no explicit restriction.”
+
+3) **Choose the question frame**
+   - Pick one frame from {Definition, Canonical fact, Cause/mechanism, Category-member, Best/most reliable method, Procedure/action, Authority/policy recall, Numeric threshold}; verify by quoting 1–3 cue words.
+
+4) **Definition control**
+   - If frame = Definition, for the top 2 contenders write: “core = …; extras = …”; verify by labeling both.
+   - Treat extras as optional unless required by the stem; verify by quoting the requirement or stating “no such requirement.”
+   - If two options share the same core and one adds an extra constraint, choose the one without the extra constraint; verify by pointing to the extra constraint.
+
+5) **Absolutes are literal**
+   - If any option has “always/never/only,” treat it literally; verify by quoting the absolute word.
+   - If the stem provides a limiter, evaluate the absolute within that context; verify by quoting the limiter.
+   - If no limiter, reject an absolute option if a counterexample exists; verify by giving the counterexample in ≤12 words.
+
+6) **Negated category-member tiering**
+   - If the stem is negated, classify each option into one tier: {Tier 1 = not a member, Tier 2 = different subtype, Tier 3 = true member}; verify by assigning a tier label.
+   - Choose the lowest-tier (Tier 1) as the correct answer when present; verify by stating “winner tier = …; runner-up tier = …”.
+
+7) **“Recommended” defaults**
+   - If the stem asks for “recommended” routine care with no condition/authority, prefer the simplest non-medicated option; verify by stating “routine-care default applied = yes/no” and quoting the absence of condition/authority.
+   - If an option is antiseptic/medicated, require an explicit indication; otherwise, downgrade it; verify by stating “indication present? yes/no.”
+
+8) **Best/most reliable method**
+   - If frame = Best/most reliable method, check for a canonical discriminator; verify by stating “landmark discriminator recognized = yes/no.”
+   - If a recognized landmark discriminator appears, select it; verify by quoting the option text.
+   - Never decide solely by tag ranking; use tags only as tie-breakers; verify by stating “tags used as tie-breaker? yes/no.”
+
+9) **Oxygen disambiguation**
+   - If the stem includes “used/consumed/reactant/requires oxygen,” interpret oxygen as a direct reactant; verify by quoting the trigger word(s).
+   - If no option satisfies direct-reactant and the stem includes dependence cues, switch to overall oxygen-dependence; verify by quoting the cue and stating “switch used = yes/no.”
+   - If ambiguity remains, tier options as {direct consumer, uniquely oxygen-dependent, neither}; verify by labeling each option and choosing the highest tier.
+
+10) **Authority/policy recall**
+    - If the stem cites an authority, treat as recall-gated; verify by quoting the authority text.
+    - Set recall_level to either “I remember a specific clause” or “I do not”; verify by including the clause or that exact statement.
+    - If recall_level = “I do not,” never assert what the authority recommends; decide only by text-visible constraints; verify by quoting at least two constraints.
+
+11) **Tie-breaking**
+    - If multiple options satisfy the success condition, apply tie-breakers in order: (a) matches a recognized canonical discriminator, (b) makes fewer additional claims, (c) is more directly observable; verify by stating which tie-breaker decided it.
+
+12) **Final selection**
+    - Choose the option that best satisfies the success condition under the chosen frame; verify by restating the success condition and stating one decisive difference between the winner and the nearest competitor.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 9: abstract_algebra==========
+======== ROUND 1 =========
+acc: 0.9137931034482758
+Final prompt at 974 tokens
+acc: 0.896551724137931
+======== ROUND 2 =========
+Final prompt at 1010 tokens
+acc: 0.9137931034482758
+Final prompt at 898 tokens
+acc: 0.9310344827586207
+======== ROUND 3 =========
+Final prompt at 977 tokens
+acc: 0.8793103448275862
+Final prompt at 749 tokens
+acc: 0.9137931034482758
+======== ROUND 4 =========
+Final prompt at 1083 tokens
+acc: 0.9137931034482758
+acc: 0.9655172413793104
+======== ROUND 5 =========
+Final prompt at 973 tokens
+acc: 0.9137931034482758
+Final prompt at 845 tokens
+acc: 0.896551724137931
+======== ROUND 6 =========
+Final prompt at 992 tokens
+acc: 0.9482758620689655
+acc: 0.9482758620689655
+======== ROUND 7 =========
+Final prompt at 994 tokens
+acc: 0.8793103448275862
+acc: 0.9310344827586207
+======== ROUND 8 =========
+acc: 0.9655172413793104
+acc: 0.896551724137931
+BEST PROMPT for subject abstract_algebra:
+# Task
+You solve multiple-choice questions (science/health/social-science/math) by:
+
+1) Locking what the stem asks for:
+   - Classify the output as one of: {specific option letter, single value, set/list of values, count/number, truth-value pattern, best method/procedure}. Verify by quoting command words (e.g., “find all…”).
+   - If the stem contains “find all” phrases, the output is a subset of the stated domain. Verify by quoting both the phrase and the domain (e.g., “in Z_3”).
+   - Never convert “find all” tasks into counts unless explicitly asked. Treat each option as a candidate element. Verify by stating “no count cue present” if applicable.
+
+2) Selection mode:
+   - If the stem says “select all” or similar, then multi-select. Verify by quoting the phrase.
+   - Otherwise, it’s single-choice. Verify by stating “single-choice” and noting “no multi-select cue present.”
+
+3) No problem-editing:
+   - Never replace, reorder, or correct symbols/terms. Evaluate the statement as written. Verify by quoting the exact expression used.
+   - If the stem signals a correction, you may use it. Verify by quoting that signal.
+
+4) Build the success test:
+   - Rewrite the stem into a checkable condition for each option. Verify by quoting correctness-defining words.
+   - If the stem includes negation cues, invert the condition. Verify by quoting the negation cue.
+   - Extract scope limits and verify by quoting each scope phrase or stating “no explicit scope limit.”
+
+5) Meaning policy:
+   - If a term/symbol is ambiguous, list up to 3 faithful parses and a cue for each. Verify by labeling each as “faithful parse.”
+   - Never treat an edited version as an alternative reading unless authorized. Verify by stating “edits considered? yes/no.”
+
+6) Controlled use of standard constants:
+   - If blackboard-bold or standard terms are used, interpret as those objects. Verify by quoting the mark/phrase.
+   - If plain letters are introduced as variables, treat them as such. Verify by quoting the introducing phrase.
+   - Otherwise, treat plain Q/R/Z/N as constants only if clearly not introducing variables. Verify by quoting the cue.
+
+7) Prerequisite gates:
+   - If a claim uses “divides” with relevant terms, require definitions as integers. Verify by stating “finiteness/convention given? yes/no.”
+   - If the stem mentions “factor group” or “quotient group,” require normality of H in G. Verify by quoting “H normal” if present.
+   - If prerequisites are missing, do not treat the statement as guaranteed true. Verify by naming the missing prerequisite.
+
+8) Theorem-application scope check:
+   - Confirm object matching before applying a theorem. Verify by stating “objects compared: ___ vs ___” and “sidedness: left/right.”
+   - If expressions are mixed-sided, do not apply a left-coset theorem. Verify by quoting the expressions and stating “mixed sidedness = yes/no.”
+
+9) Finite-domain “find all” handling:
+   - If the domain is finite and the stem requests “find all,” enumerate all elements and test the criterion. Verify by listing elements and marking pass/fail.
+
+10) Final selection discipline:
+   - State up to two assumptions beyond explicit text (or “none”). Verify by listing them.
+   - Choose the option that satisfies the success test and passes checks with the fewest extra assumptions. Verify by naming one decisive check the chosen option passes that the closest competitor fails.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+==========STARTING SUBJECT 10: anatomy==========
+======== ROUND 1 =========
+Final prompt at 771 tokens
+acc: 0.8181818181818181
+acc: 0.8831168831168831
+======== ROUND 2 =========
+acc: 0.8441558441558441
+acc: 0.8441558441558441
+acc: 0.8701298701298701
+Final prompt at 875 tokens
+acc: 0.8441558441558441
+======== ROUND 3 =========
+acc: 0.8831168831168831
+Final prompt at 683 tokens
+acc: 0.8441558441558441
+Final prompt at 803 tokens
+acc: 0.9090909090909091
+Final prompt at 870 tokens
+acc: 0.8961038961038961
+======== ROUND 4 =========
+Final prompt at 791 tokens
+acc: 0.8701298701298701
+acc: 0.8831168831168831
+Final prompt at 940 tokens
+acc: 0.8701298701298701
+Final prompt at 931 tokens
+acc: 0.8831168831168831
+======== ROUND 5 =========
+Final prompt at 941 tokens
+acc: 0.8701298701298701
+Final prompt at 981 tokens
+acc: 0.8831168831168831
+Final prompt at 1044 tokens
+acc: 0.8571428571428572
+Final prompt at 1028 tokens
+acc: 0.8701298701298701
+======== ROUND 6 =========
+Final prompt at 796 tokens
+acc: 0.8961038961038961
+Final prompt at 807 tokens
+acc: 0.8701298701298701
+Final prompt at 1019 tokens
+acc: 0.8831168831168831
+Final prompt at 900 tokens
+acc: 0.8701298701298701
+======== ROUND 7 =========
+Final prompt at 921 tokens
+acc: 0.8701298701298701
+Final prompt at 915 tokens
+acc: 0.8701298701298701
+Final prompt at 1124 tokens
+acc: 0.8701298701298701
+Final prompt at 998 tokens
+acc: 0.9090909090909091
+======== ROUND 8 =========
+acc: 0.9090909090909091
+Final prompt at 1010 tokens
+acc: 0.8831168831168831
+Final prompt at 1156 tokens
+acc: 0.8441558441558441
+Final prompt at 934 tokens
+acc: 0.8181818181818181
+BEST PROMPT for subject anatomy:
+# Task
+You answer multiple-choice questions by extracting exactly what the stem is testing, aligning your interpretation to the option-defined contrast, applying the most exam-relevant convention (with deterministic tie-breakers), and selecting the option that is correct as written—without silently repairing the item.
+
+1) Task + selection lock
+- ALWAYS determine whether it is single-answer or multi-answer from the stem; VERIFY by quoting any “select/choose all” phrase or stating “no multi-select phrase found”.
+- ALWAYS state what the stem asks for in one clause (definition, time point, direction, feature, cause, nerve, etc.); VERIFY by quoting the stem’s command words (e.g., “begin to fuse”, “moved in which direction”, “is correct”, “due to failure”).
+
+2) Option-contrast extraction (the “tested axis”)
+- ALWAYS extract the exact contrast the options encode (axis/attributes being varied); VERIFY by quoting at least two contrasted option phrases (e.g., “upward vs downward”, “overjet vs overbite”, “central vs lateral”, “before vs after”).
+- NEVER answer on a different axis than the options test; INSTEAD translate the stem concept into the option’s axis vocabulary; VERIFY by stating “axis match: yes/no” and giving the mapping “concept → option axis”.
+
+3) Discriminant-first scoring (avoid hallmark drift)
+- ALWAYS score each option only for what it explicitly claims (no substituting nearby structures/terms); VERIFY by listing each option’s key claim(s) and marking “supported/unsupported”.
+- IF you know a hallmark/typical feature that is not part of the option contrast, THEN treat it as context only, not an eliminator; VERIFY by stating “hallmark used to eliminate options? yes/no”.
+
+4) Polysemy & convention resolution (deterministic)
+- IF a term has multiple taught meanings (movement terms, positional terms, dental classifications, embryology phrasing), THEN prefer the meaning that (i) matches the option contrast and (ii) makes at least one option exactly correct without redefining other terms; VERIFY by stating “polysemy detected: yes/no”, naming the chosen meaning, and naming the option it supports.
+- IF multiple meanings still fit, THEN prefer the region-specific convention indicated by the stem (e.g., foot-specific, dental-specific); VERIFY by quoting the region cue from the stem.
+
+5) Timing questions (discrete options; no rounding)
+- ALWAYS use the same time scale/unit as the options (e.g., weeks post-fertilization) and state it; VERIFY by quoting the option unit and stating “scale = ___”.
+- IF the stem uses boundary language (“begins/starts” vs “completed/finishes”), THEN match the correct boundary rather than an averaged range; VERIFY by quoting the boundary word and stating “boundary used = begin/end/complete”.
+- NEVER pick the nearest option from a remembered range without checking each option against the boundary; INSTEAD label each option “too early / plausible / too late” with one reason; VERIFY by providing those labels for all options.
+
+6) Test-bank dialect handling (unfamiliar terms)
+- IF an unfamiliar term appears as a systematic option component (repeated/contrasted across choices), THEN treat it as intended vocabulary and interpret it within the topic framework instead of discarding it; VERIFY by stating “dialect term treated as intended: yes/no” and giving a brief mapping to a standard category.
+- NEVER eliminate an option solely because a term feels “nonstandard”; INSTEAD require a concrete contradiction (wrong region, wrong timing, wrong tissue, wrong relationship); VERIFY by stating the contradiction.
+
+7) Dental local anesthesia: tissue-target gate
+- ALWAYS classify the target site by tissue: pulpal/tooth vs soft tissue (labial/buccal mucosa/gingiva vs lingual mucosa vs skin/lip); VERIFY by quoting the site phrase and labeling the tissue class.
+- IF the target is soft tissue on the labial/buccal side in the anterior mandible, THEN prioritize mental nerve distribution rather than incisive (pulpal) distribution; VERIFY by stating “target tissue = soft tissue” and “chosen nerve fits soft tissue: yes”.
+- IF the target is pulpal/tooth sensation, THEN prioritize inferior alveolar/incisive pathways; VERIFY by stating “target tissue = pulpal” and naming the pulpal pathway used.
+- NEVER use tooth number as the primary cue when the stem specifies mucosa/soft tissue; INSTEAD follow tissue → nerve mapping; VERIFY by stating “tooth-number primary cue? yes/no”.
+
+8) Mandatory re-audit before “none fit”
+- IF you conclude no option is correct, THEN perform a re-check pass: (i) re-read stem task words, (ii) re-check option contrast/axis, (iii) re-check polysemy/convention choice, (iv) re-check 1–2 core facts; VERIFY by enumerating (i)-(iv) and stating what changed or “no change”.
+- IF after re-audit still none fit, THEN choose the option that would become correct with exactly one minimal correction and explicitly name that single correction; VERIFY by stating exactly one correction and why other options need more than one.
+
+9) Final decision discipline
+- ALWAYS choose the option that is best supported under the locked task, the option-contrast axis, and the selected convention/dialect interpretation; VERIFY by naming one decisive discriminator that eliminates the closest competing option.
+- List extra assumptions used as “none” or up to two brief assumptions; VERIFY by explicitly listing them.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_computer_science,business_ethics,astronomy,college_mathematics,college_biology,college_chemistry,college_medicine,clinical_knowledge,abstract_algebra,anatomy
+college_computer_science,0.9310,0.7759,0.9655,0.9310,0.9639,0.7193,0.9200,0.9200,0.9310,0.9481
+business_ethics,0.9138,0.8276,0.8736,0.8448,0.9639,0.6491,0.8600,0.8467,0.7414,0.8312
+astronomy,0.9310,0.7759,0.9540,0.9138,0.9639,0.6667,0.9000,0.9400,0.8793,0.9481
+college_mathematics,0.9483,0.7759,0.9770,0.8276,0.9518,0.7193,0.9400,0.9333,0.8793,0.9351
+college_biology,0.9310,0.7586,1.0000,0.9138,0.9639,0.7193,0.9000,0.9200,0.8621,0.9740
+college_chemistry,0.9138,0.7069,0.9770,0.9138,0.9639,0.7193,0.8900,0.9133,0.8448,0.9481
+college_medicine,0.9310,0.8103,0.9540,0.8966,0.9277,0.7018,0.9100,0.9267,0.7931,0.9870
+clinical_knowledge,0.9310,0.7586,0.9540,0.8966,0.9518,0.6842,0.9000,0.9333,0.8793,0.9351
+abstract_algebra,0.8966,0.7759,0.9310,0.9138,0.9639,0.7368,0.8800,0.9467,0.8621,0.9610
+anatomy,0.9655,0.7414,0.9540,0.9138,0.9639,0.7193,0.9000,0.9267,0.8276,0.9351

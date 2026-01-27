@@ -21,7 +21,20 @@ def _count_tokens(text: str, model: str = "gpt-4o") -> int:
     except Exception:
         return max(1, len(text) // 4)
 
+def hard_truncate(s: str, max_toks: int, model: str = "gpt-4o-mini") -> str:
+    import tiktoken
 
+    try:
+        enc = tiktoken.encoding_for_model(model)
+    except Exception:
+        enc = tiktoken.get_encoding("cl100k_base")
+
+    toks = enc.encode(s)
+    if len(toks) <= max_toks:
+        return s
+
+    return enc.decode(toks[:max_toks])
+    
 # returns 0 for A, 1 for B, etc, -1 for no match
 def clean_output(pred):
     if not isinstance(pred, str):

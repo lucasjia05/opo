@@ -281,6 +281,7 @@ if __name__ == '__main__':
         sections = utils.parse_sectioned_prompt(candidates[0])
         task_section = sections['task'].strip()
         best_prompt = candidates[0].replace(task_section, optimizer.best_prompt)
+        # TODO, make this actually take the best prompt in at the end
         with open(args.out, 'a') as outf:
             outf.write(f"BEST PROMPT for subject {subject}:\n{best_prompt}\n")
         per_subject_scores = task.evaluate_on_all_subjects(
