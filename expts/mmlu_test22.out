@@ -1,0 +1,66 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test22.out", "logs": "expts/mmlu_logs22.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 5, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 8, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.6785714285714286
+======== ROUND 2 =========
+acc: 0.7678571428571428
+======== ROUND 3 =========
+acc: 0.8035714285714286
+======== ROUND 4 =========
+acc: 0.8035714285714286
+======== ROUND 5 =========
+acc: 0.75
+BEST PROMPT for subject college_chemistry:
+# Task
+You are answering a college-level chemistry multiple-choice question (A–D). Choose exactly one option. Use strict constraint checking, explicit definition alignment, and unit-consistent computation. Do not “go with what seems right”; resolve mismatches by identifying the wrong assumption.
+
+1) Bind to the stem (what is being asked)
+- ALWAYS identify the target observable and target particle/nucleus exactly as stated (e.g., ¹H chemical shift reference, EPR resonant field positions, hyperfine coupling A, equilibrium polarization, spin angular momentum); VERIFY by quoting the stem phrase that names the observable.
+- ALWAYS list hard constraints/qualifiers from the stem (e.g., “not a reason,” rigid/solution, equivalent nuclei, J ≫ a, X-band ν, given I or S, giso, “separation between lines”); VERIFY each constraint is explicitly tied to an elimination or a computation step.
+
+2) Eliminate by direct contradiction first
+- IF an answer choice contradicts a hard constraint or the question polarity (e.g., asks “NOT,” “EXCEPT”), THEN eliminate it immediately; VERIFY by stating the exact constraint it violates.
+- NEVER eliminate on “unlikeliness” alone; INSTEAD require a concrete contradiction (wrong units, impossible quantum number, wrong nucleus/observable, wrong regime); VERIFY with a falsifiable check.
+
+3) Identify topic + choose the correct physical objects and constants
+- ALWAYS determine the domain (general chem, NMR, EPR/ESR, hyperfine/Zeeman, thermo/stat mech); VERIFY by naming the key stem cue (e.g., “giso,” “X-band,” “chemical shift,” “I=…,” “hyperfine in MHz”).
+- ALWAYS use constants appropriate to the particle (electron vs nucleus) and to the reported quantity (frequency, field, energy, wavenumber); VERIFY by a scale check that is diagnostic (e.g., X-band electron fields ~0.3–0.35 T for g≈2, nuclear NMR fields give MHz not GHz at similar B).
+
+4) Definition & convention alignment (must do before calculating/converting)
+- ALWAYS write the governing definition/equation in the convention implied by the stem’s wording (e.g., “adjacent line separation” vs “full splitting,” ν vs ω, A in Hz vs rad/s, Bres absolute vs ΔB offsets); VERIFY by mapping each symbol to a phrase in the stem.
+- IF multiple conventions are plausible (A vs 2A, half-splitting vs full splitting, absolute field vs relative offsets), THEN test each convention against the answer-choice set and continue with the one that makes at least one option reachable without violating constraints; VERIFY by showing that units and magnitude class match the options’ cluster.
+
+5) Compute with unit discipline (when numbers appear)
+- IF numerical values are given, THEN compute the discriminator quantity and only then compare to options; VERIFY that the computed quantity matches the options’ reported quantity (same basis: absolute vs relative; same unit family).
+- ALWAYS perform dimensional analysis on the primary relationship used; VERIFY both sides have identical units.
+- ALWAYS convert units explicitly (e.g., G↔mT, Hz↔MHz, Hz↔cm⁻¹ using c, T↔mT) and track prefixes; VERIFY by a quick inverse conversion back to the original unit.
+
+6) Regime/special-case rules (must be validated)
+- IF the stem specifies a regime (e.g., “J ≫ a,” “rigid,” “fast exchange,” “equivalent nuclei”), THEN apply the regime-appropriate rule and do a limiting-case validation; VERIFY the rule reduces to a known baseline when the regime parameter is taken to an extreme.
+- ALWAYS validate line-count/pattern logic by explicitly stating n, I (and isotope if relevant), and whether the system is a monoradical (S=1/2) or exchange-coupled/triplet (S=1) as implied; VERIFY by checking the predicted line count against the appropriate baseline formula for that regime.
+
+7) Conceptual “best explanation / NOT a reason” questions
+- IF asked for “most accurate/best explains,” THEN rank options by (i) directness to the stem’s stated purpose, (ii) necessity (counterfactual failure if false), and (iii) specificity to the named observable/technique; VERIFY by a one-sentence counterfactual test for the top candidate.
+- NEVER justify using an adjacent but unmeasured fact; INSTEAD require a causal link to the measured quantity/technique in the stem; VERIFY by stating “property → effect on the measured signal/outcome.”
+
+Fallback Protocol (use only when no option matches cleanly)
+a) Re-check algebra, unit prefixes, and frequency vs angular frequency (2π) choices; VERIFY by recomputing and confirming the unit path end-to-end.
+b) Re-check you used the correct particle/constants (electron vs nucleus; μB vs μN; γ vs gμB/ħ) and the correct reported form (A in Hz vs field units); VERIFY the scale shifts in the expected direction and toward the options.
+c) Re-check convention/basis: “separation” could mean adjacent spacing vs total span; “field positions” could mean absolute Bres vs offsets from center; “coupling” could be requested in cm⁻¹ vs MHz; VERIFY by selecting the reinterpretation that aligns with the option set’s magnitude pattern.
+d) Re-check regime assumptions implied by qualifiers (rigid vs tumbling; strong vs weak exchange; equivalent vs non-equivalent nuclei); VERIFY by applying the alternative regime rule and seeing whether it produces an available option without breaking constraints.
+e) ONLY if two or more interpretations remain consistent and close, choose the option that satisfies all hard constraints and matches the option-set scale best; VERIFY by stating why the rejected close alternative fails a specific constraint or convention test.
+
+Select exactly one option (A–D) that is best supported by the stem and the choices.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.7544

@@ -74,7 +74,7 @@ subjects = [
     "world_religions",
 ]
 
-# just 20 for now
+# just 10 for now
 subjects = [
     "abstract_algebra",
     "anatomy",
@@ -86,21 +86,6 @@ subjects = [
     "college_computer_science",
     "college_mathematics",
     "college_medicine",
-    "college_physics",
-    "computer_security",
-    "conceptual_physics",
-    "econometrics",
-    "electrical_engineering",
-    "elementary_mathematics",
-    "formal_logic",
-    "global_facts",
-    "high_school_biology",
-    "high_school_chemistry",
-]
-
-# just chem for now
-subjects = [
-    "college_chemistry",
 ]
 
 def get_task_class(task_name):
@@ -189,6 +174,8 @@ def get_args():
     
     parser.add_argument("--patience", type=int, default=5, help="Rounds without improvement before early stopping")
     parser.add_argument("--min_delta", type=float, default=1e-4, help="Minimum improvement in accuracy to reset patience")
+
+    parser.add_argument('--max_prompt_length', default=2000, type=int,  help="Maximum length of the prompt in tokens")
 
     args = parser.parse_args()
 

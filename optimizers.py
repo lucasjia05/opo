@@ -268,7 +268,7 @@ class OnlineProTeGi(PromptOptimizer):
         acc = self.metrics["acc"][-1]
         overall_acc = sum(self.metrics["acc"]) / len(self.metrics["acc"])
         gradient_prompt = f"""
-        I'm trying to write a multiple-choice question answering prompt for college chemistry.
+        I'm trying to write a multiple-choice question answering prompt.
 
         Here is the best performing prompt so far:
         "{self.best_prompt}"
@@ -295,7 +295,7 @@ class OnlineProTeGi(PromptOptimizer):
         1. Restate the question in your own words, including what quantity/concept must be determined and what constraints/assumptions are given.
         2. Identify the correct option (letter) and give a justification based on the key principle/relationship.
         3. Locate the model’s failure point. Quote or precisely paraphrase the first step/claim where the model’s reasoning diverges from the correct approach. Name the type of error.
-        4. Explain why the chosen answer is wrong or incomplete. State what the model concluded vs what should be concluded. State the minimal correction needed (e.g., “use τc ∝ Mr rather than Mr³”, “convert Hz→cm⁻¹ using ν/c with correct units”, etc.).
+        4. Explain why the chosen answer is wrong or incomplete. State what the model concluded vs what should be concluded. State the minimal correction needed.
         5. Prompt-to-error link (be specific). Cite the exact phrase(s) in the CURRENT PROMPT that likely encouraged the failure mode. Explain the causal chain as: Prompt phrase → encouraged behavior → observed failure. Avoid generic statements like “not enough emphasis” unless you specify which check or decision rule is missing.
 
         After analyzing all examples, synthesize the findings into a diagnosis of the CURRENT PROMPT’s weaknesses:
@@ -325,7 +325,7 @@ class OnlineProTeGi(PromptOptimizer):
     def apply_gradient(self, prompt, error_str, feedback_str, steps_per_gradient, n=1, model="gpt-4o"):
         """ Incorporate feedback gradient into a prompt."""
         transformation_prompt = f"""
-        I'm trying to write a multiple choice question answering prompt for college chemistry.
+        I'm trying to write a multiple choice question answering prompt.
         
         Here is the best performing prompt so far:
         "{self.best_prompt}"
@@ -344,22 +344,20 @@ class OnlineProTeGi(PromptOptimizer):
 
         Task: Write a NEW instruction prompt that improves the CURRENT prompt by directly fixing the weaknesses above.
 
-        Core requirement: The NEW prompt must be longer and more operational than the CURRENT prompt. It should contain enough concrete decision rules and verification steps that a solver model could reliably follow it on unseen college-chemistry MCQs. Avoid vague advice; prefer specific, testable rules.
-
         Before writing the final prompt, produce a structured analysis (bullets) that:
-        1) Lists the top 4–6 failure modes.
-        2) For each failure mode, propose 1-2 concrete, atomic instruction rules that prevent it. Each rule must be written in one of these formats:
+        1) Lists the top failure modes.
+        2) For each failure mode, propose concrete, atomic instruction rules that prevent it. Each rule must be written in one of these formats:
         - "IF ... THEN ...; VERIFY ..."
         - "ALWAYS ...; VERIFY ..."
         - "NEVER ...; INSTEAD ...; VERIFY ..."
-        The VERIFY clause must be falsifiable (units match, sign check, limiting-case check, option consistency, etc.).
-        3) Decide what to remove or de-emphasize from the CURRENT prompt to reduce hallucinated formulas, unnecessary verbosity, or shallow “pattern matching”.
+        The VERIFY clause must be falsifiable.
+        3) Decide what to remove or de-emphasize from the CURRENT prompt to reduce hallucination, unnecessary verbosity, or shallow “pattern matching”.
 
 
         Then produce the NEW instruction prompt with these constraints:
+        - Must be at most {self.opt['max_prompt_length']} tokens.
         - Must be clearly structured with bullets or numbered steps.
         - Must explicitly include the decision rules identified in the analysis.
-        - Must include a Fallback Protocol: what to do when results don’t match any option (re-check units, signs, assumptions, algebra; try an alternative method; only then choose).
         - Must not reuse sentences from the best-performing prompt.
         - Do not specify the output format; that is handled elsewhere.
 
@@ -382,8 +380,68 @@ class OnlineProTeGi(PromptOptimizer):
             outf.write(f"prompt: {transformation_prompt}\n")
             outf.write(f"new prompts: {res}\n")
         for r in res:   
-            new_prompts += self.parse_tagged_text(r, "<START>", "<END>")
+            extracted = self.parse_tagged_text(r, "<START>", "<END>")
+            for p in extracted:
+                p = p.strip()
+
+                p = self._compress_prompt_to_budget(
+                    p,
+                    target_tokens=self.opt.get("prompt_token_target", 1000),
+                    hard_max_tokens=int(self.opt.get("prompt_token_target", 1000) * 1.2)
+                )
+
+                new_prompts.append(p)
         return new_prompts
+
+    def _compress_prompt_to_budget(
+        self,
+        prompt_text: str,
+        target_tokens: int = 1000,
+        hard_max_tokens: int = 1200,
+        model: str = "gpt-4o-mini",
+        n: int = 1,
+        max_passes: int = 6,
+    ) -> str:
+        """
+        Lossless-ish compression: rewrite to fit within target_tokens.
+        Only triggers if prompt exceeds hard_max_tokens (soft limit behavior).
+        """
+        tok = utils._count_tokens(prompt_text, model=model)
+        if tok <= hard_max_tokens:
+            return prompt_text  # soft limit: allow small overruns
+        print(f"\nPrompt too long at {tok} tokens\n")
+        compressed = prompt_text
+        for _ in range(max_passes):
+            compressor_prompt = f"""
+            You are a prompt compressor.
+
+            Goal: Rewrite the INPUT prompt to be <= {target_tokens} tokens.
+            Requirements:
+            - Preserve ALL behavioral constraints, decision rules, and safety checks.
+            - Do NOT add new behaviors or new requirements.
+            - Remove redundancy first, then merge overlapping rules, then shorten phrasing.
+            - Prefer bullets/numbered rules. Remove examples before removing rules.
+            - Output ONLY the rewritten prompt (no commentary, no tags).
+
+            INPUT PROMPT:
+            {compressed}
+            """.strip()
+
+            res = utils.chatgpt(compressor_prompt, n=n, model=model)
+            candidate = res[0] if isinstance(res, list) and len(res) else (res or "")
+            candidate = candidate.strip() if candidate else ""
+
+            compressed = candidate
+            tok = utils._count_tokens(compressed, model=model)
+            if tok <= hard_max_tokens:
+                break
+            print(f"  Still too long at {tok} tokens after compression pass\n")
+        if tok > hard_max_tokens:
+            with open(self.opt['out'], 'a') as outf:
+                outf.write(f"Warning: prompt still too long at {tok} tokens after compression\n")
+        with open(self.opt['out'], 'a') as outf:
+            outf.write(f"Final prompt at {tok} tokens\n")
+        return compressed
 
     def generate_synonyms(self, prompt_section, n=3):
         """ Generate synonyms for a prompt section."""
@@ -500,10 +558,6 @@ class OnlineProTeGi(PromptOptimizer):
             if accuracy > self.best_score:
                 self.best_score = accuracy
                 self.best_prompt = task_section
-            #print("texts[0]:", texts[0])
-            #print("choices[0]:", choices[0])
-            #print("responses[0]:", responses[0])
-            #print("labels[0]:", labels[0])
             self.metrics["f1"].append(f1)
             self.metrics['avg_f1'] = sum(self.metrics["f1"]) / len(self.metrics["f1"])
 

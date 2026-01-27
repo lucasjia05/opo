@@ -9,6 +9,18 @@ import config
 import string
 import re
 import sys
+import tiktoken
+
+def _count_tokens(text: str, model: str = "gpt-4o") -> int:
+    """
+    Best: use tiktoken if available. Fallback: rough heuristic.
+    """
+    try:
+        enc = tiktoken.encoding_for_model(model)
+        return len(enc.encode(text))
+    except Exception:
+        return max(1, len(text) // 4)
+
 
 # returns 0 for A, 1 for B, etc, -1 for no match
 def clean_output(pred):

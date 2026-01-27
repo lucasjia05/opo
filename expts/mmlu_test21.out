@@ -1,0 +1,93 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-5-mini", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test21.out", "logs": "expts/mmlu_logs21.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 16, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 8, "min_delta": 0.0001, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.75
+======== ROUND 2 =========
+acc: 0.7857142857142857
+iterate failed, continuing with current prompt
+======== ROUND 3 =========
+acc: 0.7857142857142857
+======== ROUND 4 =========
+acc: 0.7678571428571428
+======== ROUND 5 =========
+acc: 0.8035714285714286
+======== ROUND 6 =========
+acc: 0.7857142857142857
+======== ROUND 7 =========
+acc: 0.7857142857142857
+======== ROUND 8 =========
+acc: 0.7678571428571428
+======== ROUND 9 =========
+acc: 0.7678571428571428
+======== ROUND 10 =========
+acc: 0.7857142857142857
+======== ROUND 11 =========
+acc: 0.7857142857142857
+======== ROUND 12 =========
+acc: 0.7678571428571428
+======== ROUND 13 =========
+acc: 0.7857142857142857
+BEST PROMPT for subject college_chemistry:
+# Task
+You are solving a college-level chemistry multiple-choice problem. Select exactly one option (A–D) that is uniquely supported by correct chemistry/physics AND by the conventions implied by the answer choices. Use this procedure.
+
+1) Parse the target and the option set (do this before any calculation)
+- ALWAYS restate the stem as: “Decide/compute X, where X means ____ in THIS problem”; VERIFY X’s type (number with units, dimensionless ratio, count of lines, best explanation).
+- ALWAYS scan the choices for “choice-structure clues”; VERIFY which of these apply:
+  • unit duplicates (same value in different units), 
+  • one option is a constant/reference (signals intended method),
+  • values cluster around a known anchor (signals intended convention),
+  • choices look like absolute values vs offsets/half-splittings vs full splittings.
+
+2) Choose ONE governing idea, but lock its domain of validity
+- IF quantitative, THEN write one primary relation/definition you will use; VERIFY each symbol corresponds to a stem quantity and has compatible units.
+- IF conceptual, THEN state a single deciding rule that can eliminate ≥2 options; VERIFY it addresses the stem’s scope words (“most accurate”, “sometimes”, “cannot”, “used as”).
+- ALWAYS state applicability conditions for your chosen relation/principle (regime/assumptions); VERIFY each condition is supported by stem cues (e.g., solution vs rigid, exchange limit, high-T approximation, equivalent nuclei).
+
+3) Quantitative execution (strict)
+- ALWAYS convert inputs into a consistent unit system before substituting; VERIFY dimensional consistency at every step and that the final unit matches what the choices express.
+- IF the problem involves magnetic resonance, THEN explicitly choose the convention (Hz vs rad/s; h vs ħ; γ vs γ/2π; “splitting” meaning); VERIFY you did not mix conventions (e.g., using ħ with γ/2π in Hz).
+- ALWAYS do a limiting-case/magnitude check while computing (high-T tanh(x)≈x when x≪1, etc.); VERIFY the approximation condition is numerically satisfied if you use it.
+
+4) Mandatory “definition & convention reconciliation” (do this even if you hit a numeric match)
+- ALWAYS test whether your computed quantity is the same “X” the test writer encoded in the choices; VERIFY at least one invariant/behavior implied by physics and the stem:
+  • Polarization at fixed T should increase with B and be ~10^-6 for nuclei near 1 T, 300 K (order check).
+  • X-band EPR near g≈2 should correspond to B≈0.34 T (≈3400 G) for ~9–10 GHz (anchor check).
+  • Ratios should reduce to a simple constant only if both species are in the same approximation regime (verify x≪1 for both, etc.).
+- IF a choice matches your number but violates an anchor/invariant or conflicts with option-structure clues, THEN treat it as a convention mismatch and re-interpret (e.g., ΔE vs level energy E0, factor of 2 or 2π, center field vs line position definition); VERIFY the revised interpretation yields exactly one option AND restores the anchor/invariant.
+
+5) Conceptual questions: choose the option that matches the discriminant encoded by the choices
+- ALWAYS identify the single contrast axis the options are testing (e.g., ω≈0 vs ω0, detectability vs structural info, operational constraint vs definition); VERIFY your selected statement directly resolves that contrast in the direction required by the stem.
+- IF more than one option is broadly true, THEN choose the one that explains the stem’s specific “why/how/when” (e.g., why T1 can be longer than T2); VERIFY that swapping the key contrast term would make the chosen statement wrong or incomplete.
+
+6) Operational/experimental wording overrides “definition-only” reasoning
+- IF the stem asks about practical use (“can/cannot be used”, “why used”, “quencher”, “detect”), THEN prioritize experimental mechanisms/constraints (relaxation efficiency, kinetics/lifetime, redox compatibility, solubility, exchange broadening, instrumental sensitivity); VERIFY your chosen option names a mechanism that changes the measurement outcome, not just a label.
+- NEVER decide such items solely by electron counting; INSTEAD connect to the operational effect in the stem; VERIFY the loser options fail by a concrete experimental counterpoint.
+
+7) Provenance rule for numbers (anti-hallucination)
+- NEVER introduce non-universal numeric data not present in the stem or the choices; INSTEAD use ratios, cancellations, or infer the intended baseline from option-structure; VERIFY every numeric input is either (i) in the stem, (ii) a universal constant, or (iii) explicitly printed in an option.
+
+8) Hard-stop anchors (selection is forbidden until satisfied)
+- ALWAYS check topic anchors before selecting; VERIFY your result lies within a reasonable tolerance of expected scale (examples: X-band EPR center fields near a few thousand G for g~2; nuclear polarizations are tiny at room temperature; electron effects are much larger than nuclear).
+- NEVER pick the “closest” option after an anchor failure; INSTEAD resolve the mismatch source first; VERIFY the final selection satisfies anchors and matches one option exactly by definition.
+
+Fallback Protocol (use if no option matches cleanly)
+a) Re-audit unit conversions; VERIFY each conversion factor (T↔G↔mT, Hz↔MHz↔GHz, rad/s↔Hz, cm^-1 via c if used) is correct.
+b) Re-audit sign/direction/inequalities and “absolute vs offset vs spacing” interpretation; VERIFY algebra matches the stem language and what the choices appear to represent.
+c) Re-audit constants and convention factors (h vs ħ, γ vs γ/2π, factors of 2, 2π, 10^4); VERIFY you are consistent end-to-end.
+d) Re-check applicability conditions (regime assumptions, exchange limits, motion/rigidity, equivalence of nuclei); VERIFY the chosen model truly applies.
+e) Try an equivalent method or invariant (e.g., compute center value then apply splitting; use proportionality checks); VERIFY both approaches agree.
+Only after (a–e), select the single option that matches the corrected physics, definition, units, and anchors.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.7544

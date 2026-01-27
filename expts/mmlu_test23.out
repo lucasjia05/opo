@@ -1,0 +1,77 @@
+{"task": "mmlu", "data_dir": "data/mmlu", "prompts": "prompts/mmlu.md", "task_model": "gpt-4.1-mini", "gradient_model": "gpt-5.2", "editing_model": "gpt-5.2", "out": "expts/mmlu_test23.out", "logs": "expts/mmlu_logs23.out", "max_threads": 32, "temperature": 0.0, "optimizer": "nl-gradient", "rounds": 5, "minibatch_size": 64, "n_gradients": 1, "errors_per_gradient": 8, "gradients_per_error": 1, "steps_per_gradient": 1, "mc_samples_per_step": 0, "max_expansion_factor": 8, "beam_size": 4, "n_test_exs": 100, "engine": "chatgpt", "evaluator": "bf", "scorer": "01", "eval_rounds": 2, "eval_prompts_per_round": 2, "samples_per_eval": 32, "c": 1.0, "knn_k": 2, "knn_t": 0.993, "reject_on_errors": false, "patience": 8, "min_delta": 0.0001, "max_prompt_length": 1000, "eval_budget": 128}
+==========STARTING SUBJECT 1: college_chemistry==========
+======== ROUND 1 =========
+acc: 0.7678571428571428
+======== ROUND 2 =========
+acc: 0.7857142857142857
+======== ROUND 3 =========
+Warning: prompt still too long at 1232 tokens after compression
+acc: 0.5
+======== ROUND 4 =========
+acc: 0.1785714285714286
+======== ROUND 5 =========
+Warning: prompt still too long at 1481 tokens after compression
+acc: 0.3214285714285714
+BEST PROMPT for subject college_chemistry:
+# Task
+You are answering a multiple-choice question. Your job is to select the one option justified by the problem statement and provided choices, using checks to prevent guessing, unit mistakes, regime misapplication, and reasoning mismaps.
+
+Follow these mandatory rules:
+
+1) Parse the task and lock in constraints
+   - Identify the answer type demanded by the stem (numerical value, conceptual fact, etc.); restate the demanded quantity/claim in one short sentence.
+   - Extract and treat as binding any qualifiers/regime statements (e.g., “most accurately,” “cannot,” “assuming lines do not overlap”); list each qualifier and its effect on the method.
+
+2) Use the options as hard constraints
+   - Scan the choices for structure (units, magnitude scale, etc.); note at least one diagnostic feature.
+   - Treat the option set as a consistency check; if the first-pass computation yields a value not represented, revisit assumptions.
+
+3) Quantitative questions: mandatory checks
+   - Track units through transformations; ensure the final computed unit matches the chosen option.
+   - Perform an order-of-magnitude sanity check using relevant benchmarks; compare to at least one benchmark.
+   - If options span different scales, determine which scale is plausible; rule out at least one scale as implausible.
+   - Never pick “the closest number”; ensure the chosen option is consistent with the correct formula and stated meanings; state your interpretation.
+   - If your computed result does not match the choices, re-check arithmetic, conventions, and assumptions; execute at least two checks and state what changed or confirmed.
+   - If no option matches exactly, choose the one that aligns with the intended method; explain why the distractors correspond to common wrong conventions.
+
+4) Counting/splitting questions: enforce regime logic
+   - Determine equivalence and nuclear spins before counting lines; state n and I for each coupled nucleus set.
+   - If the stem states “lines do not overlap” or “resolved,” use multiplicative splitting; verify correct factors.
+   - Adjust the model for effective electron spin state changes; explicitly use the regime statement for counting logic.
+   - If your computed line count is not among the options, revisit equivalence assumptions and couplings; test at least two factors before choosing an option.
+
+5) “Most accurate / best explanation” questions: option-by-option adjudication
+   - Compare statements as written; do not provide your own explanation unless it is an option; identify flaws in rejected options.
+   - Distinguish “common practical reason” from “most accurate statement”; state why the chosen option is more accurate.
+   - If two options are partially true, choose the one that best matches the stem’s scope and qualifiers.
+
+6) “Cannot be used / except” questions: interpret scope carefully
+   - Interpret “cannot be used” as “not suitable under the intended mechanism”; consider non-magnetic practicality criteria.
+   - Do not assume the test is asking only for the most obvious heuristic; reconcile your selection with the phrasing.
+
+7) Knowledge uncertainty and constants: conservative decision-making
+   - If a numeric answer depends on a constant not provided, use ratios, infer from options, or use a standard benchmark; indicate the source of the constant.
+   - If multiple conventions apply, test at least two and compare outcomes against the choices.
+
+8) Final consistency and anti-mismatch check
+   - Perform a last pass to ensure the chosen option’s units match the computed result and that the statement aligns with your justification.
+   - If reasoning supports a different option, fix the pick or redo reasoning; ensure no contradiction exists.
+
+9) Behavioral constraints to reduce errors
+   - Keep reasoning focused on discriminating steps; avoid long derivations that increase slip risk.
+   - Do not introduce extra assumptions; state any necessary assumptions and test them against the options.
+
+Objective: pick the single option uniquely supported after enforcing qualifier/regime constraints, unit and scale sanity, no-closest-number rule, option-by-option adjudication for “most accurate,” and final letter-text consistency.
+
+# Output format
+End your answer with the correct option letter in the exact format: Answer: <LETTER>
+Example: Answer: C
+
+# Prediction
+Question: {{ text }}
+
+# Choices
+{{ choices }}
+
+train\eval,college_chemistry
+college_chemistry,0.6842
